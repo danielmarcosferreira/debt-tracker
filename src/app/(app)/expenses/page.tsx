@@ -7,8 +7,10 @@ import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Select } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { MonthScopePicker } from "@/components/MonthScopePicker";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
+import { useMonthScope } from "@/lib/hooks";
 import { useCards, usePeople, useExpenses, addExpense, markExpensePaid } from "@/lib/data";
 import { formatCurrency, formatDate, todayISO } from "@/lib/utils";
 import { categoryLabel } from "@/lib/i18n";
@@ -44,9 +46,12 @@ function ExpensesContent() {
   const [search, setSearch] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
+  const monthScope = useMonthScope();
+  const { monthKey } = monthScope;
 
   const filtered = useMemo(() => {
     return expenses.filter((e) => {
+      if (monthKey && e.date.slice(0, 7) !== monthKey) return false;
       if (cardFilter !== "all" && e.cardId !== cardFilter) return false;
       if (personFilter === "me" && !e.forSelf) return false;
       if (personFilter !== "all" && personFilter !== "me" && e.personId !== personFilter)
@@ -56,7 +61,14 @@ function ExpensesContent() {
       if (search && !e.description.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [expenses, cardFilter, personFilter, statusFilter, search]);
+  }, [expenses, monthKey, cardFilter, personFilter, statusFilter, search]);
+
+  const monthHasAnyExpenses = useMemo(
+    () => expenses.some((e) => !monthKey || e.date.slice(0, 7) === monthKey),
+    [expenses, monthKey]
+  );
+  const hasOtherFiltersActive =
+    search !== "" || cardFilter !== "all" || personFilter !== "all" || statusFilter !== "all";
 
   const totals = useMemo(() => {
     const totalsMap: Partial<Record<CurrencyCode, number>> = {};
@@ -84,6 +96,8 @@ function ExpensesContent() {
         <Button onClick={() => setSheetOpen(true)} className="mb-4 w-full">
           <Plus className="h-4 w-4" /> {t("expenses.addExpense")}
         </Button>
+
+        <MonthScopePicker {...monthScope} />
 
         <div className="mb-4 flex flex-col gap-2.5">
           <div className="relative">
@@ -141,6 +155,12 @@ function ExpensesContent() {
             icon={Receipt}
             title={t("expenses.emptyTitle")}
             description={t("expenses.emptyDesc")}
+          />
+        ) : filtered.length === 0 && !monthHasAnyExpenses && !hasOtherFiltersActive ? (
+          <EmptyState
+            icon={Receipt}
+            title={t("expenses.noneThisMonth")}
+            description={t("expenses.noneThisMonthDesc")}
           />
         ) : filtered.length === 0 ? (
           <EmptyState
@@ -371,6 +391,16 @@ function ExpenseFormSheet({
         {installments && (
           <>
             <div className="grid grid-cols-2 gap-3">
+              <Field label={t("expenseForm.installmentStart")} htmlFor="installmentStart">
+                <Input
+                  id="installmentStart"
+                  type="number"
+                  min="1"
+                  max={installmentCount}
+                  value={installmentStart}
+                  onChange={(e) => setInstallmentStart(e.target.value)}
+                />
+              </Field>
               <Field label={t("expenseForm.installmentCount")} htmlFor="installmentCount">
                 <Input
                   id="installmentCount"
@@ -384,16 +414,6 @@ function ExpenseFormSheet({
                       setInstallmentStart(e.target.value);
                     }
                   }}
-                />
-              </Field>
-              <Field label={t("expenseForm.installmentStart")} htmlFor="installmentStart">
-                <Input
-                  id="installmentStart"
-                  type="number"
-                  min="1"
-                  max={installmentCount}
-                  value={installmentStart}
-                  onChange={(e) => setInstallmentStart(e.target.value)}
                 />
               </Field>
             </div>

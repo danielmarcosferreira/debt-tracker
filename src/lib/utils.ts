@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CURRENCIES, type CurrencyCode, type LanguageCode } from "./types";
+import { CURRENCIES, type CurrencyCode, type Expense, type LanguageCode } from "./types";
 import { translate, type TranslationKey } from "./i18n";
 
 export function cn(...inputs: ClassValue[]) {
@@ -34,6 +34,35 @@ export function formatDate(iso: string, language: LanguageCode = "en") {
 
 export function todayISO() {
   return format(new Date(), "yyyy-MM-dd");
+}
+
+/** "yyyy-MM" for the current month. */
+export function currentMonthKey() {
+  return format(new Date(), "yyyy-MM");
+}
+
+/** Shifts a "yyyy-MM" key by `delta` months (can be negative). */
+export function addMonthsToKey(key: string, delta: number): string {
+  const [y, m] = key.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return format(d, "yyyy-MM");
+}
+
+/** "August 2026" / "Agosto de 2026" for a "yyyy-MM" key. */
+export function formatMonthYear(key: string, language: LanguageCode = "en") {
+  const [y, m] = key.split("-").map(Number);
+  const d = new Date(y, m - 1, 1);
+  const formatted =
+    language === "pt"
+      ? format(d, "MMMM 'de' yyyy", { locale: ptBR })
+      : format(d, "MMMM yyyy");
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
+/** Expenses dated within `monthKey` ("yyyy-MM"); returns `expenses` unchanged when `monthKey` is null. */
+export function expensesInMonth(expenses: Expense[], monthKey: string | null): Expense[] {
+  if (!monthKey) return expenses;
+  return expenses.filter((e) => e.date.slice(0, 7) === monthKey);
 }
 
 export function initials(name: string) {

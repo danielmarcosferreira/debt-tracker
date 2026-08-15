@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { TopBar } from "@/components/TopBar";
 import { DueBanner } from "@/components/DueBanner";
+import { MonthScopePicker } from "@/components/MonthScopePicker";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
+import { useMonthScope } from "@/lib/hooks";
 import { useCards, usePeople, useExpenses, useMyDebts } from "@/lib/data";
 import {
   cardBalance,
@@ -14,7 +16,7 @@ import {
   debtsByOwner,
   type CurrencyTotals,
 } from "@/lib/aggregates";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { expensesInMonth, formatCurrency, formatDate } from "@/lib/utils";
 import { CreditCard, ArrowRight, Receipt, HandCoins } from "lucide-react";
 import type { CurrencyCode } from "@/lib/types";
 
@@ -31,11 +33,18 @@ export default function DashboardPage() {
   const { people } = usePeople(user?.uid);
   const { expenses } = useExpenses(user?.uid);
   const { expenses: myDebtExpenses } = useMyDebts(user?.uid);
+  const monthScope = useMonthScope();
+  const { monthKey } = monthScope;
 
-  const myDebt = myUnpaidTotals(expenses);
-  const owedToMe = owedToMeTotals(expenses);
+  // Debt totals respect the month/all-time picker; card balances and recent
+  // activity below always reflect the current, unscoped state.
+  const scopedExpenses = expensesInMonth(expenses, monthKey);
+  const scopedMyDebtExpenses = expensesInMonth(myDebtExpenses, monthKey);
+
+  const myDebt = myUnpaidTotals(scopedExpenses);
+  const owedToMe = owedToMeTotals(scopedExpenses);
   const due = upcomingDueDates(cards);
-  const owedGroups = debtsByOwner(myDebtExpenses).filter((g) => g.unpaidTotal > 0);
+  const owedGroups = debtsByOwner(scopedMyDebtExpenses).filter((g) => g.unpaidTotal > 0);
   const owedElsewhereTotal = owedGroups.reduce((sum, g) => sum + g.unpaidTotal, 0);
   const firstName = profile?.name?.split(" ")[0] ?? user?.displayName?.split(" ")[0];
 
@@ -52,6 +61,8 @@ export default function DashboardPage() {
       <DueBanner due={due} />
 
       <main className="px-5 pt-5">
+        <MonthScopePicker {...monthScope} />
+
         {/* Summary cards */}
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl bg-slate-900 p-4 text-white dark:bg-slate-800">
