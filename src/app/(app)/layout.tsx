@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { BottomNav } from "@/components/BottomNav";
-import { HandCoins } from "lucide-react";
+import { AppLogo } from "@/components/AppLogo";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -21,9 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (loading || !user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50 dark:bg-slate-950">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
-          <HandCoins className="h-6 w-6" />
-        </div>
+        <AppLogo />
         <p className="text-sm text-slate-400 dark:text-slate-500">{t("common.loading")}</p>
       </div>
     );

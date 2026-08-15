@@ -1,6 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/language-context";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import type {
   InputHTMLAttributes,
   LabelHTMLAttributes,
@@ -39,6 +42,33 @@ export function Input({
   ...props
 }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(fieldClasses, className)} {...props} />;
+}
+
+export function PasswordInput({
+  className,
+  ...props
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+  const [visible, setVisible] = useState(false);
+  const { t } = useLanguage();
+
+  return (
+    <div className="relative">
+      <input
+        type={visible ? "text" : "password"}
+        className={cn(fieldClasses, "pr-11", className)}
+        {...props}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        tabIndex={-1}
+        aria-label={visible ? t("common.hidePassword") : t("common.showPassword")}
+        className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+      >
+        {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+  );
 }
 
 export function Select({

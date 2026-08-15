@@ -20,8 +20,8 @@ export function BottomNav() {
   const { t } = useLanguage();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)] dark:border-slate-800 dark:bg-slate-950/95">
-      <div className="mx-auto flex max-w-lg items-stretch justify-around">
+    <nav className="fixed px-2 inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)] dark:border-slate-800 dark:bg-slate-950/95">
+      <div className="mx-auto flex max-w-lg items-stretch justify-around pb-3">
         {items.map(({ href, labelKey, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (

@@ -8,6 +8,8 @@ const en = {
   "common.markPaid": "Mark paid",
   "common.markUnpaid": "Mark unpaid",
   "common.deleteExpenseConfirm": "Delete this expense?",
+  "common.showPassword": "Show password",
+  "common.hidePassword": "Hide password",
 
   "nav.home": "Home",
   "nav.cards": "Cards",
@@ -234,6 +236,8 @@ const pt: Record<TranslationKey, string> = {
   "common.markPaid": "Marcar como paga",
   "common.markUnpaid": "Marcar como não paga",
   "common.deleteExpenseConfirm": "Excluir esta despesa?",
+  "common.showPassword": "Mostrar senha",
+  "common.hidePassword": "Ocultar senha",
 
   "nav.home": "Início",
   "nav.cards": "Cartões",

@@ -7,8 +7,9 @@ import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { AppLogo } from "@/components/AppLogo";
 import { friendlyAuthError } from "@/lib/utils";
-import { HandCoins, CheckCircle2, ArrowLeft } from "lucide-react";
+import { CheckCircle2, ArrowLeft } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
@@ -39,9 +40,7 @@ export default function ForgotPasswordPage() {
       </div>
 
       <div className="mb-8 mt-4 flex flex-col items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
-          <HandCoins className="h-6 w-6" />
-        </div>
+        <AppLogo />
         <div className="text-center">
           <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
             {t("forgotPassword.title")}

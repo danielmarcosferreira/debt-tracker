@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { Button } from "@/components/ui/Button";
-import { Field, Input } from "@/components/ui/Input";
+import { Field, Input, PasswordInput } from "@/components/ui/Input";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { AppLogo } from "@/components/AppLogo";
 import { friendlyAuthError } from "@/lib/utils";
-import { HandCoins } from "lucide-react";
 
 export default function SignupPage() {
   const { signUp } = useAuth();
@@ -46,9 +46,7 @@ export default function SignupPage() {
       </div>
 
       <div className="mb-8 mt-4 flex flex-col items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
-          <HandCoins className="h-6 w-6" />
-        </div>
+        <AppLogo />
         <div className="text-center">
           <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
             {t("signup.title")}
@@ -83,9 +81,8 @@ export default function SignupPage() {
           />
         </Field>
         <Field label={t("signup.password")} htmlFor="password">
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             required
             autoComplete="new-password"
             value={password}
