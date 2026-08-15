@@ -9,11 +9,12 @@ import { Field, Input, Select } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
-import { useCards, usePeople, useExpenses, addExpense, deleteExpense, markExpensePaid } from "@/lib/data";
+import { useCards, usePeople, useExpenses, addExpense, markExpensePaid } from "@/lib/data";
 import { formatCurrency, formatDate, todayISO } from "@/lib/utils";
 import { categoryLabel } from "@/lib/i18n";
 import { CATEGORIES } from "@/lib/types";
-import type { Category, CurrencyCode } from "@/lib/types";
+import type { Category, CurrencyCode, Expense } from "@/lib/types";
+import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
 import { Receipt, Plus, CheckCircle2, Circle, Trash2, Search } from "lucide-react";
 
 type StatusFilter = "all" | "unpaid" | "paid";
@@ -42,6 +43,7 @@ function ExpensesContent() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
 
   const filtered = useMemo(() => {
     return expenses.filter((e) => {
@@ -181,9 +183,7 @@ function ExpensesContent() {
                     {formatCurrency(e.amount, e.currency)}
                   </p>
                   <button
-                    onClick={() =>
-                      confirm(t("common.deleteExpenseConfirm")) && deleteExpense(e.id)
-                    }
+                    onClick={() => setDeletingExpense(e)}
                     className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-950"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -199,6 +199,11 @@ function ExpensesContent() {
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         defaultCardId={cardFilter !== "all" ? cardFilter : undefined}
+      />
+      <DeleteExpenseDialog
+        expense={deletingExpense}
+        allExpenses={expenses}
+        onClose={() => setDeletingExpense(null)}
       />
     </>
   );

@@ -247,3 +247,15 @@ export async function markExpensePaid(id: string, paid: boolean) {
 export async function deleteExpense(id: string) {
   await deleteDoc(doc(db, "expenses", id));
 }
+
+/** Deletes several expenses atomically — used to remove "this and future" installments together. */
+export async function deleteExpenses(ids: string[]) {
+  if (ids.length === 0) return;
+  if (ids.length === 1) {
+    await deleteExpense(ids[0]);
+    return;
+  }
+  const batch = writeBatch(db);
+  ids.forEach((id) => batch.delete(doc(db, "expenses", id)));
+  await batch.commit();
+}

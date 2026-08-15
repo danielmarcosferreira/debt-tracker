@@ -11,7 +11,6 @@ import {
   updatePerson,
   deletePerson,
   markExpensePaid,
-  deleteExpense,
   reconcileLinkedExpenses,
 } from "@/lib/data";
 import { personTotals } from "@/lib/aggregates";
@@ -20,7 +19,9 @@ import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
 import { PERSON_COLORS } from "@/lib/types";
+import type { Expense } from "@/lib/types";
 import { exportPersonStatement } from "@/lib/pdf";
 import {
   ArrowLeft,
@@ -52,6 +53,7 @@ function PersonDetail() {
   const { expenses } = useExpenses(user?.uid);
   const [filter, setFilter] = useState<Filter>("all");
   const [editOpen, setEditOpen] = useState(false);
+  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
 
   const person = people.find((p) => p.id === id);
   const { owed, paid, expenses: all } = useMemo(
@@ -225,9 +227,7 @@ function PersonDetail() {
                   {formatCurrency(e.amount, e.currency)}
                 </p>
                 <button
-                  onClick={() =>
-                    confirm(t("common.deleteExpenseConfirm")) && deleteExpense(e.id)
-                  }
+                  onClick={() => setDeletingExpense(e)}
                   className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-950"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -242,6 +242,11 @@ function PersonDetail() {
         open={editOpen}
         onClose={() => setEditOpen(false)}
         person={person}
+      />
+      <DeleteExpenseDialog
+        expense={deletingExpense}
+        allExpenses={expenses}
+        onClose={() => setDeletingExpense(null)}
       />
     </>
   );
