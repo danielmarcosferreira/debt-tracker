@@ -314,7 +314,7 @@ function ExpenseFormSheet({
             placeholder={t("expenseForm.descriptionPlaceholder")}
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
           <Field
             label={
               !installments

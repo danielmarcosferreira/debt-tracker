@@ -21,7 +21,11 @@ export function Field({
   htmlFor?: string;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    // min-w-0: as a grid/flex item this otherwise defaults to min-width:auto,
+    // which stops it (and native controls inside it, e.g. type="date") from
+    // ever shrinking below their content's intrinsic width — on a 2-column
+    // row that's what was forcing the whole sheet wider than the screen.
+    <div className="flex min-w-0 flex-col gap-1.5">
       <label
         htmlFor={htmlFor}
         title={label}
@@ -34,14 +38,30 @@ export function Field({
   );
 }
 
+// text-base (16px), not smaller: iOS Safari auto-zooms the whole page on
+// focus for any input under 16px, which is the "width" glitch on mobile.
 const fieldClasses =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[15px] text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-500 dark:focus:ring-indigo-950";
+  "block w-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-base text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-500 dark:focus:ring-indigo-950";
 
-export function Input({
-  className,
-  ...props
-}: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={cn(fieldClasses, className)} {...props} />;
+const DATE_LIKE_TYPES = new Set(["date", "time", "datetime-local", "month", "week"]);
+
+export function Input({ className, type, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      type={type}
+      className={cn(
+        fieldClasses,
+        // iOS Safari's date/time inputs ignore `width: 100%` outright and lay
+        // out at their own intrinsic size in any container. Starting from a
+        // near-zero basis and letting min-width pull it back up to the
+        // container is the documented workaround — `!important` because it
+        // has to win over fieldClasses' own `w-full`.
+        type && DATE_LIKE_TYPES.has(type) && "!w-px !min-w-full",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 export function PasswordInput({

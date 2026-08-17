@@ -21,6 +21,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // A custom `viewport` export replaces Next's automatic
+  // `width=device-width, initial-scale=1` entirely, so it has to be repeated
+  // here — omitting it left mobile browsers rendering at desktop width.
+  width: "device-width",
+  initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
     { media: "(prefers-color-scheme: dark)", color: "#020617" },
@@ -34,7 +39,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      {/* overflow-x-hidden: app-wide guard so no element — native form
+          controls on mobile in particular — can ever force the page to
+          scroll/shift horizontally. */}
+      <body className="min-h-full flex flex-col overflow-x-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <LanguageProvider>{children}</LanguageProvider>
