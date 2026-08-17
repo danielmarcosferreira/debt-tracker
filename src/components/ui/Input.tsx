@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, currencySymbol } from "@/lib/utils";
 import { useLanguage } from "@/lib/language-context";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
@@ -10,6 +10,7 @@ import type {
   ReactNode,
   SelectHTMLAttributes,
 } from "react";
+import type { CurrencyCode } from "@/lib/types";
 
 export function Field({
   label,
@@ -61,6 +62,67 @@ export function Input({ className, type, ...props }: InputHTMLAttributes<HTMLInp
       )}
       {...props}
     />
+  );
+}
+
+/**
+ * Money input that masks its value like a cash-register: typed digits fill
+ * in from the right (cents first), and the whole/decimal parts are grouped
+ * and separated the way the active language formats numbers. Reports back a
+ * plain decimal string (e.g. "1234.50") so callers can keep treating the
+ * value as a normal numeric string.
+ */
+export function CurrencyInput({
+  id,
+  value,
+  onChange,
+  currency,
+  required,
+  placeholder,
+  className,
+}: {
+  id?: string;
+  value: string;
+  onChange: (value: string) => void;
+  currency: CurrencyCode;
+  required?: boolean;
+  placeholder?: string;
+  className?: string;
+}) {
+  const { language } = useLanguage();
+  const locale = language === "pt" ? "pt-BR" : "en-US";
+  const symbol = currencySymbol(currency);
+
+  const cents = value ? Math.round(Number(value) * 100) : 0;
+  const display =
+    value && !Number.isNaN(cents)
+      ? new Intl.NumberFormat(locale, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(cents / 100)
+      : "";
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+    onChange(digits ? (Number(digits) / 100).toString() : "");
+  };
+
+  return (
+    <div className="relative">
+      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
+        {symbol}
+      </span>
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        required={required}
+        value={display}
+        onChange={handleChange}
+        placeholder={placeholder ?? "0.00"}
+        className={cn(fieldClasses, "pl-9", className)}
+      />
+    </div>
   );
 }
 

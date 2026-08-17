@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
@@ -12,7 +12,6 @@ import {
   updatePerson,
   deletePerson,
   markExpensePaid,
-  reconcileLinkedExpenses,
 } from "@/lib/data";
 import { personTotals } from "@/lib/aggregates";
 import { formatCurrency, formatDate, initials } from "@/lib/utils";
@@ -35,7 +34,6 @@ import {
   FileDown,
   Link2,
 } from "lucide-react";
-
 
 type Filter = "all" | "unpaid" | "paid";
 
@@ -65,13 +63,6 @@ function PersonDetail() {
     () => personTotals(id, expenses),
     [id, expenses]
   );
-
-  // Backfill linkedUserId onto this person's older expenses once they've linked their account.
-  useEffect(() => {
-    if (user && person?.linkedUserId) {
-      reconcileLinkedExpenses(user.uid, person.id, person.linkedUserId);
-    }
-  }, [user, person?.id, person?.linkedUserId]);
 
   const filtered = all.filter((e) => {
     if (filter === "unpaid") return !e.paid;

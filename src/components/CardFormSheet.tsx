@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Sheet } from "./ui/Sheet";
 import { Button } from "./ui/Button";
-import { Field, Input, Select } from "./ui/Input";
+import { CurrencyInput, Field, Input, Select } from "./ui/Input";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { addCard, updateCard } from "@/lib/data";
@@ -109,14 +109,12 @@ function CardForm({ onClose, editing }: { onClose: () => void; editing: Card | n
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Field label={t("cardForm.limit")} htmlFor="limit">
-          <Input
+          <CurrencyInput
             id="limit"
-            type="number"
-            min="0"
-            step="0.01"
             value={limit}
-            onChange={(e) => setLimit(e.target.value)}
-            placeholder="5000"
+            onChange={setLimit}
+            currency={currency}
+            placeholder="5,000.00"
           />
         </Field>
         <Field label={t("cardForm.currency")} htmlFor="currency">

@@ -207,14 +207,23 @@ const en = {
 
   "iOwe.title": "I Owe",
   "iOwe.nothingHere": "Nothing here",
-  "iOwe.summary": "{total} across {count} people",
-  "iOwe.summary_one": "{total} across {count} person",
+  "iOwe.summary": "{total} across {count} cards",
+  "iOwe.summary_one": "{total} across {count} card",
   "iOwe.emptyTitle": "Nothing owed",
-  "iOwe.emptyDesc":
+  "iOwe.emptyDesc": "Expenses you log for yourself will show up here.",
+  "iOwe.emptyDescFiltered": "No {filter} expenses of your own yet.",
+
+  "owedElsewhere.title": "Owed Elsewhere",
+  "owedElsewhere.back": "Home",
+  "owedElsewhere.nothingHere": "Nothing here",
+  "owedElsewhere.summary": "{total} across {count} people",
+  "owedElsewhere.summary_one": "{total} across {count} person",
+  "owedElsewhere.emptyTitle": "Nothing owed",
+  "owedElsewhere.emptyDesc":
     "When someone links you as a person on their card and assigns you an expense, it'll show up here.",
-  "iOwe.unpaidCount_one": "{count} unpaid",
-  "iOwe.unpaidCount_other": "{count} unpaid",
-  "iOwe.someone": "Someone",
+  "owedElsewhere.unpaidCount_one": "{count} unpaid",
+  "owedElsewhere.unpaidCount_other": "{count} unpaid",
+  "owedElsewhere.someone": "Someone",
 
   "profile.back": "Home",
   "profile.yourInfo": "Your info",
@@ -470,14 +479,23 @@ const pt: Record<TranslationKey, string> = {
 
   "iOwe.title": "Eu Devo",
   "iOwe.nothingHere": "Nada por aqui",
-  "iOwe.summary": "{total} para {count} pessoas",
-  "iOwe.summary_one": "{total} para {count} pessoa",
+  "iOwe.summary": "{total} em {count} cartões",
+  "iOwe.summary_one": "{total} em {count} cartão",
   "iOwe.emptyTitle": "Nada devido",
-  "iOwe.emptyDesc":
+  "iOwe.emptyDesc": "Despesas que você registra para si mesmo aparecerão aqui.",
+  "iOwe.emptyDescFiltered": "Nenhuma despesa {filter} sua ainda.",
+
+  "owedElsewhere.title": "Devido em Outro Lugar",
+  "owedElsewhere.back": "Início",
+  "owedElsewhere.nothingHere": "Nada por aqui",
+  "owedElsewhere.summary": "{total} para {count} pessoas",
+  "owedElsewhere.summary_one": "{total} para {count} pessoa",
+  "owedElsewhere.emptyTitle": "Nada devido",
+  "owedElsewhere.emptyDesc":
     "Quando alguém te vincular como pessoa no cartão dela e te atribuir uma despesa, ela aparecerá aqui.",
-  "iOwe.unpaidCount_one": "{count} não paga",
-  "iOwe.unpaidCount_other": "{count} não pagas",
-  "iOwe.someone": "Alguém",
+  "owedElsewhere.unpaidCount_one": "{count} não paga",
+  "owedElsewhere.unpaidCount_other": "{count} não pagas",
+  "owedElsewhere.someone": "Alguém",
 
   "profile.back": "Início",
   "profile.yourInfo": "Seus dados",

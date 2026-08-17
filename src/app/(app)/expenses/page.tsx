@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { TopBar } from "@/components/TopBar";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
-import { Field, Input, Select } from "@/components/ui/Input";
+import { CurrencyInput, Field, Input, Select } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MonthScopePicker } from "@/components/MonthScopePicker";
 import { useAuth } from "@/lib/auth-context";
@@ -340,15 +340,12 @@ function ExpenseFormSheet({
             }
             htmlFor="amount"
           >
-            <Input
+            <CurrencyInput
               id="amount"
-              type="number"
-              min="0"
-              step="0.01"
               required
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
+              onChange={setAmount}
+              currency={selectedCard?.currency ?? profile?.defaultCurrency ?? "USD"}
             />
           </Field>
           <Field label={t("expenseForm.date")} htmlFor="date">

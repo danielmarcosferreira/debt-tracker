@@ -85,7 +85,7 @@ export default function DashboardPage() {
 
         {owedElsewhereTotal > 0 && (
           <Link
-            href="/i-owe"
+            href="/owed-elsewhere"
             className="mt-3 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3.5 dark:border-amber-900 dark:bg-amber-950"
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">

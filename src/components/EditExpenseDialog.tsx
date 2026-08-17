@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Sheet } from "./ui/Sheet";
 import { Button } from "./ui/Button";
-import { Field, Input, Select } from "./ui/Input";
+import { CurrencyInput, Field, Input, Select } from "./ui/Input";
 import { useLanguage } from "@/lib/language-context";
 import { cn } from "@/lib/utils";
 import { updateExpenseWithScope } from "@/lib/data";
@@ -69,6 +69,7 @@ function EditExpenseForm({
   const [mode, setMode] = useState<"only" | "future">("only");
   const [saving, setSaving] = useState(false);
 
+  const selectedCard = cards.find((c) => c.id === cardId);
   const installment = expense.installment ?? null;
   const future = installment
     ? allExpenses.filter(
@@ -82,7 +83,6 @@ function EditExpenseForm({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const selectedCard = cards.find((c) => c.id === cardId);
     if (!description.trim() || !amount || !selectedCard) return;
     setSaving(true);
     try {
@@ -121,14 +121,12 @@ function EditExpenseForm({
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label={t("expenseForm.amount")} htmlFor="editAmount">
-          <Input
+          <CurrencyInput
             id="editAmount"
-            type="number"
-            min="0"
-            step="0.01"
             required
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={setAmount}
+            currency={selectedCard?.currency ?? expense.currency}
           />
         </Field>
         <Field label={t("expenseForm.date")} htmlFor="editDate">
