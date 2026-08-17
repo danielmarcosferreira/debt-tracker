@@ -85,7 +85,7 @@ function PersonDetail() {
 
   if (!person) {
     return (
-      <main className="px-5 pt-5">
+      <main className="px-2 pt-5">
         <button
           onClick={() => router.push("/people")}
           className="mb-4 flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400"
@@ -168,7 +168,7 @@ function PersonDetail() {
         </div>
       </header>
 
-      <main className="px-5 pt-5">
+      <main className="px-2 pt-5">
         <MonthScopePicker {...monthScope} />
 
         <div className="mb-4 flex gap-2">
@@ -176,11 +176,10 @@ function PersonDetail() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-medium capitalize transition ${
-                filter === f
+              className={`rounded-full px-3.5 py-1.5 text-xs font-medium capitalize transition ${filter === f
                   ? "bg-indigo-600 text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-              }`}
+                }`}
             >
               {filterLabels[f]}
             </button>
@@ -195,9 +194,9 @@ function PersonDetail() {
               filter === "all"
                 ? t("peopleDetail.emptyDescAll", { name: person.name })
                 : t("peopleDetail.emptyDescFiltered", {
-                    filter: filterLabels[filter],
-                    name: person.name,
-                  })
+                  filter: filterLabels[filter],
+                  name: person.name,
+                })
             }
           />
         ) : monthGroups ? (

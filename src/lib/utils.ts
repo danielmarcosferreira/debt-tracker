@@ -32,6 +32,15 @@ export function formatDate(iso: string, language: LanguageCode = "en") {
   }
 }
 
+/** Compact numeric "DD/MM/YYYY" form, language-independent — used where space is tight. */
+export function formatDateShort(iso: string) {
+  try {
+    return format(parseISO(iso), "dd/MM/yyyy");
+  } catch {
+    return iso;
+  }
+}
+
 export function todayISO() {
   return format(new Date(), "yyyy-MM-dd");
 }

@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { useMonthScope, useTodayMonthKey } from "@/lib/hooks";
 import { useCards, usePeople, useExpenses, addExpense, markExpensePaid } from "@/lib/data";
-import { expensesInScope, formatCurrency, formatDate, todayISO } from "@/lib/utils";
+import { expensesInScope, formatCurrency, formatDateShort, todayISO } from "@/lib/utils";
 import { categoryLabel } from "@/lib/i18n";
 import { CATEGORIES } from "@/lib/types";
 import type { Category, CurrencyCode, Expense } from "@/lib/types";
@@ -33,7 +33,7 @@ export default function ExpensesPage() {
 
 function ExpensesContent() {
   const { user } = useAuth();
-  const { t, tc, language } = useLanguage();
+  const { t, tc } = useLanguage();
   const searchParams = useSearchParams();
   const { cards } = useCards(user?.uid);
   const { people } = usePeople(user?.uid);
@@ -107,7 +107,7 @@ function ExpensesContent() {
         subtitle={tc("expenses.shown", filtered.length, { total: totalsLabel })}
       />
 
-      <main className="px-5 pt-5">
+      <main className="px-2 pt-5">
         <Button onClick={() => setSheetOpen(true)} className="mb-4 w-full">
           <Plus className="h-4 w-4" /> {t("expenses.addExpense")}
         </Button>
@@ -203,32 +203,32 @@ function ExpensesContent() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                       {e.description}
-                      {e.installment && (
-                        <span className="ml-1.5 text-xs font-normal text-slate-400 dark:text-slate-500">
-                          {e.installment.index}/{e.installment.count}
-                        </span>
-                      )}
                     </p>
                     <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                      {formatDate(e.date, language)} · {e.cardName} ·{" "}
-                      {person?.name ?? t("expenses.you")}
+                      {person?.name ?? t("expenses.you")} · {e.cardName}
+                    </p>
+                    <p className="truncate text-xs text-slate-400 dark:text-slate-500">
+                      {formatDateShort(e.date)}
+                      {e.installment && ` · ${e.installment.index}/${e.installment.count}`}
                     </p>
                   </div>
                   <p className="shrink-0 text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                     {formatCurrency(e.amount, e.currency)}
                   </p>
-                  <button
+                  <div>
+                    <button
                     onClick={() => setEditingExpense(e)}
                     className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => setDeletingExpense(e)}
-                    className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-950"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingExpense(e)}
+                      className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-950"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               );
             })}

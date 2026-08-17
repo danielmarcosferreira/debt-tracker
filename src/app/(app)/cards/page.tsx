@@ -41,7 +41,7 @@ export default function CardsPage() {
     <>
       <TopBar title={t("cards.title")} subtitle={tc("cards.count", cards.length)} />
 
-      <main className="px-5 pt-5">
+      <main className="px-2 pt-5">
         <Button onClick={openNew} className="mb-4 w-full">
           <Plus className="h-4 w-4" /> {t("cards.addCard")}
         </Button>

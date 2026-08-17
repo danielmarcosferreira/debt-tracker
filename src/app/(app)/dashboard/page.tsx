@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
       <DueBanner due={due} />
 
-      <main className="px-5 pt-5">
+      <main className="px-2 pt-5">
         <MonthScopePicker {...monthScope} />
 
         {/* Summary cards */}
@@ -214,11 +214,10 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <p
-                    className={`shrink-0 text-sm font-semibold tabular-nums ${
-                      e.paid
+                    className={`shrink-0 text-sm font-semibold tabular-nums ${e.paid
                         ? "text-slate-400 dark:text-slate-500"
                         : "text-slate-900 dark:text-slate-100"
-                    }`}
+                      }`}
                   >
                     {formatCurrency(e.amount, e.currency)}
                   </p>

@@ -94,7 +94,7 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      <main className="px-5 pt-5 pb-10">
+      <main className="px-2 pt-5 pb-10">
         <section>
           <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
             {t("profile.yourInfo")}

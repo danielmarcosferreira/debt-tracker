@@ -27,7 +27,7 @@ export default function PeoplePage() {
     <>
       <TopBar title={t("people.title")} subtitle={tc("people.count", people.length)} />
 
-      <main className="px-5 pt-5">
+      <main className="px-2 pt-5">
         <Button onClick={() => setSheetOpen(true)} className="mb-4 w-full">
           <Plus className="h-4 w-4" /> {t("people.addPerson")}
         </Button>

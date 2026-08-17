@@ -46,9 +46,9 @@ function IOweContent() {
   const monthScope = useMonthScope(
     hasMonthParams
       ? {
-          scope: searchParams.get("scope") === "all" ? "all" : "month",
-          monthKey: searchParams.get("month"),
-        }
+        scope: searchParams.get("scope") === "all" ? "all" : "month",
+        monthKey: searchParams.get("month"),
+      }
       : undefined,
     "monthScope:i-owe"
   );
@@ -88,13 +88,13 @@ function IOweContent() {
           personal.length === 0
             ? t("iOwe.nothingHere")
             : t(allCardGroups.length === 1 ? "iOwe.summary_one" : "iOwe.summary", {
-                total: totalsLabel(totals),
-                count: allCardGroups.length,
-              })
+              total: totalsLabel(totals),
+              count: allCardGroups.length,
+            })
         }
       />
 
-      <main className="px-5 pt-5">
+      <main className="px-2 pt-5">
         <MonthScopePicker {...monthScope} />
 
         {!loading && personal.length === 0 ? (
@@ -110,11 +110,10 @@ function IOweContent() {
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-medium capitalize transition ${
-                    filter === f
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-medium capitalize transition ${filter === f
                       ? "bg-indigo-600 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                  }`}
+                    }`}
                 >
                   {filterLabels[f]}
                 </button>

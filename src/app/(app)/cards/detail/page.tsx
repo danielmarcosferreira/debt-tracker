@@ -66,7 +66,7 @@ function CardDetail() {
 
   if (!card) {
     return (
-      <main className="px-5 pt-5">
+      <main className="px-2 pt-5">
         <button
           onClick={() => router.push("/cards")}
           className="mb-4 flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400"
@@ -167,17 +167,16 @@ function CardDetail() {
         </div>
       </header>
 
-      <main className="px-5 pt-5">
+      <main className="px-2 pt-5">
         <div className="mb-4 flex gap-2">
           {(["all", "unpaid", "paid"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-medium capitalize transition ${
-                filter === f
+              className={`rounded-full px-3.5 py-1.5 text-xs font-medium capitalize transition ${filter === f
                   ? "bg-indigo-600 text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-              }`}
+                }`}
             >
               {filterLabels[f]}
             </button>
