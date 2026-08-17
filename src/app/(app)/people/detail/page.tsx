@@ -13,16 +13,18 @@ import {
   deletePerson,
   markExpensePaid,
 } from "@/lib/data";
-import { personTotals } from "@/lib/aggregates";
-import { formatCurrency, formatDate, initials } from "@/lib/utils";
+import { personTotals, groupByMonth } from "@/lib/aggregates";
+import { useMonthScope } from "@/lib/hooks";
+import { expensesInMonth, formatCurrency, formatDate, formatMonthYear, initials } from "@/lib/utils";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { MonthScopePicker } from "@/components/MonthScopePicker";
 import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { PERSON_COLORS } from "@/lib/types";
-import type { Expense } from "@/lib/types";
+import type { Expense, LanguageCode } from "@/lib/types";
 import { exportPersonStatement } from "@/lib/pdf";
 import {
   ArrowLeft,
@@ -57,18 +59,21 @@ function PersonDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
+  const monthScope = useMonthScope(undefined, "monthScope:people-detail");
 
   const person = people.find((p) => p.id === id);
-  const { owed, paid, expenses: all } = useMemo(
-    () => personTotals(id, expenses),
-    [id, expenses]
-  );
+  const { expenses: all } = useMemo(() => personTotals(id, expenses), [id, expenses]);
 
-  const filtered = all.filter((e) => {
+  const monthScoped = expensesInMonth(all, monthScope.monthKey);
+  const owed = monthScoped.filter((e) => !e.paid).reduce((sum, e) => sum + e.amount, 0);
+  const paid = monthScoped.filter((e) => e.paid).reduce((sum, e) => sum + e.amount, 0);
+
+  const filtered = monthScoped.filter((e) => {
     if (filter === "unpaid") return !e.paid;
     if (filter === "paid") return e.paid;
     return true;
   });
+  const monthGroups = monthScope.scope === "all" ? groupByMonth(filtered) : null;
 
   const filterLabels: Record<Filter, string> = {
     all: t("common.filterAll"),
@@ -162,6 +167,8 @@ function PersonDetail() {
       </header>
 
       <main className="px-5 pt-5">
+        <MonthScopePicker {...monthScope} />
+
         <div className="mb-4 flex gap-2">
           {(["all", "unpaid", "paid"] as Filter[]).map((f) => (
             <button
@@ -191,50 +198,45 @@ function PersonDetail() {
                   })
             }
           />
+        ) : monthGroups ? (
+          <div className="flex flex-col gap-3">
+            {monthGroups.map((mg) => (
+              <div
+                key={mg.monthKey}
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+              >
+                <div className="flex items-center justify-between bg-slate-50 px-3.5 py-2.5 dark:bg-slate-800/50">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {formatMonthYear(mg.monthKey, language)}
+                  </p>
+                  <p className="text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-300">
+                    {formatCurrency(mg.total, mg.expenses[0]?.currency)}
+                  </p>
+                </div>
+                <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
+                  {mg.expenses.map((e) => (
+                    <ExpenseRow
+                      key={e.id}
+                      expense={e}
+                      language={language}
+                      onEdit={() => setEditingExpense(e)}
+                      onDelete={() => setDeletingExpense(e)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="flex flex-col divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
             {filtered.map((e) => (
-              <div key={e.id} className="flex items-center gap-3 p-3.5">
-                <button
-                  onClick={() => markExpensePaid(e.id, !e.paid)}
-                  className="shrink-0 text-slate-300 transition hover:text-emerald-500 dark:text-slate-600"
-                  title={e.paid ? t("common.markUnpaid") : t("common.markPaid")}
-                >
-                  {e.paid ? (
-                    <CheckCircle2 className="h-6 w-6 text-emerald-500" />
-                  ) : (
-                    <Circle className="h-6 w-6" />
-                  )}
-                </button>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
-                    {e.description}
-                    {e.installment && (
-                      <span className="ml-1.5 text-xs font-normal text-slate-400 dark:text-slate-500">
-                        {e.installment.index}/{e.installment.count}
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {formatDate(e.date, language)} · {e.cardName}
-                  </p>
-                </div>
-                <p className="shrink-0 text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
-                  {formatCurrency(e.amount, e.currency)}
-                </p>
-                <button
-                  onClick={() => setEditingExpense(e)}
-                  className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setDeletingExpense(e)}
-                  className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-950"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+              <ExpenseRow
+                key={e.id}
+                expense={e}
+                language={language}
+                onEdit={() => setEditingExpense(e)}
+                onDelete={() => setDeletingExpense(e)}
+              />
             ))}
           </div>
         )}
@@ -258,6 +260,63 @@ function PersonDetail() {
         onClose={() => setDeletingExpense(null)}
       />
     </>
+  );
+}
+
+function ExpenseRow({
+  expense: e,
+  language,
+  onEdit,
+  onDelete,
+}: {
+  expense: Expense;
+  language: LanguageCode;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { t } = useLanguage();
+  return (
+    <div className="flex items-center gap-3 p-3.5">
+      <button
+        onClick={() => markExpensePaid(e.id, !e.paid)}
+        className="shrink-0 text-slate-300 transition hover:text-emerald-500 dark:text-slate-600"
+        title={e.paid ? t("common.markUnpaid") : t("common.markPaid")}
+      >
+        {e.paid ? (
+          <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+        ) : (
+          <Circle className="h-6 w-6" />
+        )}
+      </button>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+          {e.description}
+          {e.installment && (
+            <span className="ml-1.5 text-xs font-normal text-slate-400 dark:text-slate-500">
+              {e.installment.index}/{e.installment.count}
+            </span>
+          )}
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          {formatDate(e.date, language)} · {e.cardName}
+        </p>
+      </div>
+      <p className="shrink-0 text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+        {formatCurrency(e.amount, e.currency)}
+      </p>
+      <button
+        onClick={onEdit}
+        className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
+      <button
+        onClick={onDelete}
+        className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-950"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
   );
 }
 

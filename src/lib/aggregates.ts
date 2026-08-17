@@ -52,6 +52,23 @@ export function groupByCard(expenses: Expense[]) {
     .sort((a, b) => b.total - a.total);
 }
 
+/** Groups expenses by their "yyyy-MM" month, newest first, each with its own summed total. */
+export function groupByMonth(expenses: Expense[]) {
+  const groups = new Map<string, Expense[]>();
+  for (const e of expenses) {
+    const key = e.date.slice(0, 7);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(e);
+  }
+  return Array.from(groups.entries())
+    .map(([monthKey, monthExpenses]) => ({
+      monthKey,
+      expenses: monthExpenses,
+      total: monthExpenses.reduce((sum, e) => sum + e.amount, 0),
+    }))
+    .sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+}
+
 /** Cross-owner debts: what the signed-in (linked) user owes, grouped by the owner's name. */
 export function debtsByOwner(expenses: Expense[]) {
   const groups = new Map<string, { ownerName: string; expenses: Expense[] }>();
