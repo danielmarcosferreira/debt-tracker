@@ -9,10 +9,10 @@ import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
-import { useMonthScope } from "@/lib/hooks";
+import { useMonthScope, useTodayMonthKey } from "@/lib/hooks";
 import { useCards, usePeople, useExpenses, markExpensePaid } from "@/lib/data";
 import { groupByCard, myUnpaidTotals, type CurrencyTotals } from "@/lib/aggregates";
-import { expensesInMonth, formatCurrency, formatDate } from "@/lib/utils";
+import { expensesInScope, formatCurrency, formatDate } from "@/lib/utils";
 import type { CurrencyCode, Expense } from "@/lib/types";
 import { HandCoins, CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
 
@@ -52,13 +52,17 @@ function IOweContent() {
       : undefined,
     "monthScope:i-owe"
   );
-  const { monthKey } = monthScope;
+  const { scope, monthKey } = monthScope;
+  const todayMonthKey = useTodayMonthKey();
 
   // "I owe" = my own personal expenses on my own cards — not what other
   // people assign to me on their cards (see /owed-elsewhere for that).
-  const personal = expensesInMonth(
+  // "All" means "today onward," not the full history.
+  const personal = expensesInScope(
     expenses.filter((e) => e.forSelf),
-    monthKey
+    scope,
+    monthKey,
+    todayMonthKey
   );
   const allCardGroups = groupByCard(personal);
   const totals = myUnpaidTotals(personal);

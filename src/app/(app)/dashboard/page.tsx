@@ -6,7 +6,7 @@ import { DueBanner } from "@/components/DueBanner";
 import { MonthScopePicker } from "@/components/MonthScopePicker";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
-import { useMonthScope } from "@/lib/hooks";
+import { useMonthScope, useTodayMonthKey } from "@/lib/hooks";
 import { useCards, usePeople, useExpenses, useMyDebts } from "@/lib/data";
 import {
   cardBalance,
@@ -16,7 +16,7 @@ import {
   debtsByOwner,
   type CurrencyTotals,
 } from "@/lib/aggregates";
-import { expensesInMonth, formatCurrency, formatDate } from "@/lib/utils";
+import { expensesInScope, formatCurrency, formatDate } from "@/lib/utils";
 import { CreditCard, ArrowRight, Receipt, HandCoins } from "lucide-react";
 import type { CurrencyCode } from "@/lib/types";
 
@@ -34,12 +34,14 @@ export default function DashboardPage() {
   const { expenses } = useExpenses(user?.uid);
   const { expenses: myDebtExpenses } = useMyDebts(user?.uid);
   const monthScope = useMonthScope(undefined, "monthScope:dashboard");
-  const { monthKey } = monthScope;
+  const { scope, monthKey } = monthScope;
+  const todayMonthKey = useTodayMonthKey();
 
-  // Debt totals respect the month/all-time picker; card balances and recent
+  // Debt totals respect the month/all-time picker — "all" means "today
+  // onward," not the full history — while card balances and recent
   // activity below always reflect the current, unscoped state.
-  const scopedExpenses = expensesInMonth(expenses, monthKey);
-  const scopedMyDebtExpenses = expensesInMonth(myDebtExpenses, monthKey);
+  const scopedExpenses = expensesInScope(expenses, scope, monthKey, todayMonthKey);
+  const scopedMyDebtExpenses = expensesInScope(myDebtExpenses, scope, monthKey, todayMonthKey);
 
   const myDebt = myUnpaidTotals(scopedExpenses);
   const owedToMe = owedToMeTotals(scopedExpenses);

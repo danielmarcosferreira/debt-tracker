@@ -10,9 +10,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { MonthScopePicker } from "@/components/MonthScopePicker";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
-import { useMonthScope } from "@/lib/hooks";
+import { useMonthScope, useTodayMonthKey } from "@/lib/hooks";
 import { useCards, usePeople, useExpenses, addExpense, markExpensePaid } from "@/lib/data";
-import { formatCurrency, formatDate, todayISO } from "@/lib/utils";
+import { expensesInScope, formatCurrency, formatDate, todayISO } from "@/lib/utils";
 import { categoryLabel } from "@/lib/i18n";
 import { CATEGORIES } from "@/lib/types";
 import type { Category, CurrencyCode, Expense } from "@/lib/types";
@@ -58,11 +58,18 @@ function ExpensesContent() {
       : undefined,
     "monthScope:expenses"
   );
-  const { monthKey } = monthScope;
+  const { scope, monthKey } = monthScope;
+  const todayMonthKey = useTodayMonthKey();
+
+  // "All" means "today onward" (not the full history) — same convention as
+  // the dashboard, /i-owe, and a person's detail page.
+  const scopedExpenses = useMemo(
+    () => expensesInScope(expenses, scope, monthKey, todayMonthKey),
+    [expenses, scope, monthKey, todayMonthKey]
+  );
 
   const filtered = useMemo(() => {
-    return expenses.filter((e) => {
-      if (monthKey && e.date.slice(0, 7) !== monthKey) return false;
+    return scopedExpenses.filter((e) => {
       if (cardFilter !== "all" && e.cardId !== cardFilter) return false;
       if (personFilter === "me" && !e.forSelf) return false;
       if (personFilter !== "all" && personFilter !== "me" && e.personId !== personFilter)
@@ -72,12 +79,9 @@ function ExpensesContent() {
       if (search && !e.description.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [expenses, monthKey, cardFilter, personFilter, statusFilter, search]);
+  }, [scopedExpenses, cardFilter, personFilter, statusFilter, search]);
 
-  const monthHasAnyExpenses = useMemo(
-    () => expenses.some((e) => !monthKey || e.date.slice(0, 7) === monthKey),
-    [expenses, monthKey]
-  );
+  const monthHasAnyExpenses = scopedExpenses.length > 0;
   const hasOtherFiltersActive =
     search !== "" || cardFilter !== "all" || personFilter !== "all" || statusFilter !== "all";
 

@@ -65,6 +65,27 @@ export function expensesInMonth(expenses: Expense[], monthKey: string | null): E
   return expenses.filter((e) => e.date.slice(0, 7) === monthKey);
 }
 
+/**
+ * Expenses matching a month/all-time scope picker's current selection: an
+ * exact month when `scope` is "month", or "today onward" when `scope` is
+ * "all" — deliberately excluding months before the current one, so "All"
+ * reads as everything outstanding now and in the future (e.g. the rest of
+ * an installment plan), not the full historical ledger back to day one.
+ * `todayMonthKey` comes from `useTodayMonthKey()`; while it's still null
+ * (hydration not resolved yet), "all" falls back to showing everything
+ * rather than filtering out expenses prematurely.
+ */
+export function expensesInScope(
+  expenses: Expense[],
+  scope: "month" | "all",
+  monthKey: string | null,
+  todayMonthKey: string | null
+): Expense[] {
+  if (scope === "month") return expensesInMonth(expenses, monthKey);
+  if (!todayMonthKey) return expenses;
+  return expenses.filter((e) => e.date.slice(0, 7) >= todayMonthKey);
+}
+
 export function initials(name: string) {
   return name
     .trim()

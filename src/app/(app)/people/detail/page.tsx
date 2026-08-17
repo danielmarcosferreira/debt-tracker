@@ -14,8 +14,8 @@ import {
   markExpensePaid,
 } from "@/lib/data";
 import { personTotals, groupByMonth } from "@/lib/aggregates";
-import { useMonthScope } from "@/lib/hooks";
-import { expensesInMonth, formatCurrency, formatDate, formatMonthYear, initials } from "@/lib/utils";
+import { useMonthScope, useTodayMonthKey } from "@/lib/hooks";
+import { expensesInScope, formatCurrency, formatDate, formatMonthYear, initials } from "@/lib/utils";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
@@ -60,11 +60,13 @@ function PersonDetail() {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
   const monthScope = useMonthScope(undefined, "monthScope:people-detail");
+  const todayMonthKey = useTodayMonthKey();
 
   const person = people.find((p) => p.id === id);
   const { expenses: all } = useMemo(() => personTotals(id, expenses), [id, expenses]);
 
-  const monthScoped = expensesInMonth(all, monthScope.monthKey);
+  // "All" means "today onward," not the full history.
+  const monthScoped = expensesInScope(all, monthScope.scope, monthScope.monthKey, todayMonthKey);
   const owed = monthScoped.filter((e) => !e.paid).reduce((sum, e) => sum + e.amount, 0);
   const paid = monthScoped.filter((e) => e.paid).reduce((sum, e) => sum + e.amount, 0);
 
