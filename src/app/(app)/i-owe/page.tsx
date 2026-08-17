@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { TopBar } from "@/components/TopBar";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { MonthScopePicker } from "@/components/MonthScopePicker";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
+import { useMonthScope } from "@/lib/hooks";
 import { useCards, usePeople, useExpenses, markExpensePaid } from "@/lib/data";
 import { groupByCard, myUnpaidTotals, type CurrencyTotals } from "@/lib/aggregates";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { expensesInMonth, formatCurrency, formatDate } from "@/lib/utils";
 import type { CurrencyCode, Expense } from "@/lib/types";
 import { HandCoins, CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
 
@@ -22,18 +25,41 @@ function totalsLabel(totals: CurrencyTotals) {
 }
 
 export default function IOwePage() {
+  return (
+    <Suspense fallback={null}>
+      <IOweContent />
+    </Suspense>
+  );
+}
+
+function IOweContent() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const searchParams = useSearchParams();
   const { cards } = useCards(user?.uid);
   const { people } = usePeople(user?.uid);
   const { expenses, loading } = useExpenses(user?.uid);
   const [filter, setFilter] = useState<Filter>("all");
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
+  const hasMonthParams = searchParams.has("scope") || searchParams.has("month");
+  const monthScope = useMonthScope(
+    hasMonthParams
+      ? {
+          scope: searchParams.get("scope") === "all" ? "all" : "month",
+          monthKey: searchParams.get("month"),
+        }
+      : undefined,
+    "monthScope:i-owe"
+  );
+  const { monthKey } = monthScope;
 
   // "I owe" = my own personal expenses on my own cards — not what other
   // people assign to me on their cards (see /owed-elsewhere for that).
-  const personal = expenses.filter((e) => e.forSelf);
+  const personal = expensesInMonth(
+    expenses.filter((e) => e.forSelf),
+    monthKey
+  );
   const allCardGroups = groupByCard(personal);
   const totals = myUnpaidTotals(personal);
 
@@ -65,6 +91,8 @@ export default function IOwePage() {
       />
 
       <main className="px-5 pt-5">
+        <MonthScopePicker {...monthScope} />
+
         {!loading && personal.length === 0 ? (
           <EmptyState
             icon={HandCoins}

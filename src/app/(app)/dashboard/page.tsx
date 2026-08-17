@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const { people } = usePeople(user?.uid);
   const { expenses } = useExpenses(user?.uid);
   const { expenses: myDebtExpenses } = useMyDebts(user?.uid);
-  const monthScope = useMonthScope();
+  const monthScope = useMonthScope(undefined, "monthScope:dashboard");
   const { monthKey } = monthScope;
 
   // Debt totals respect the month/all-time picker; card balances and recent
@@ -51,6 +51,14 @@ export default function DashboardPage() {
   const recent = expenses.slice(0, 5);
   const currency = profile?.defaultCurrency ?? "USD";
 
+  // Carries the dashboard's own month/all-time picker over to the linked page.
+  const monthQuery =
+    monthScope.scope === "all"
+      ? "scope=all"
+      : monthScope.monthKey
+        ? `month=${monthScope.monthKey}`
+        : "";
+
   return (
     <>
       <TopBar
@@ -65,14 +73,20 @@ export default function DashboardPage() {
 
         {/* Summary cards */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-slate-900 p-4 text-white dark:bg-slate-800">
+          <Link
+            href={`/i-owe${monthQuery ? `?${monthQuery}` : ""}`}
+            className="rounded-2xl bg-slate-900 p-4 text-white transition active:scale-[0.98] dark:bg-slate-800"
+          >
             <p className="text-xs font-medium text-slate-300">{t("dashboard.iOwe")}</p>
             <p className="mt-1.5 text-2xl font-semibold tabular-nums">
               <TotalsLine totals={myDebt} fallback={currency} />
             </p>
             <p className="mt-1 text-xs text-slate-400">{t("dashboard.acrossCards")}</p>
-          </div>
-          <div className="rounded-2xl bg-emerald-600 p-4 text-white">
+          </Link>
+          <Link
+            href={`/expenses${monthQuery ? `?${monthQuery}` : ""}`}
+            className="rounded-2xl bg-emerald-600 p-4 text-white transition active:scale-[0.98]"
+          >
             <p className="text-xs font-medium text-emerald-100">{t("dashboard.owedToMe")}</p>
             <p className="mt-1.5 text-2xl font-semibold tabular-nums">
               <TotalsLine totals={owedToMe} fallback={currency} />
@@ -80,7 +94,7 @@ export default function DashboardPage() {
             <p className="mt-1 text-xs text-emerald-100">
               {tc("dashboard.byPeople", people.length)}
             </p>
-          </div>
+          </Link>
         </div>
 
         {owedElsewhereTotal > 0 && (

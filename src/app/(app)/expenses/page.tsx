@@ -48,7 +48,16 @@ function ExpensesContent() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
-  const monthScope = useMonthScope();
+  const hasMonthParams = searchParams.has("scope") || searchParams.has("month");
+  const monthScope = useMonthScope(
+    hasMonthParams
+      ? {
+          scope: searchParams.get("scope") === "all" ? "all" : "month",
+          monthKey: searchParams.get("month"),
+        }
+      : undefined,
+    "monthScope:expenses"
+  );
   const { monthKey } = monthScope;
 
   const filtered = useMemo(() => {
