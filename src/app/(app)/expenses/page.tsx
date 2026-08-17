@@ -344,13 +344,7 @@ function ExpenseFormSheet({
         </Field>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
           <Field
-            label={
-              !installments
-                ? t("expenseForm.amount")
-                : isOngoingInstallment
-                  ? t("expenseForm.amountPerInstallment")
-                  : t("expenseForm.amountTotal")
-            }
+            label={!installments ? t("expenseForm.amount") : t("expenseForm.amountTotal")}
             htmlFor="amount"
           >
             <CurrencyInput
@@ -433,11 +427,14 @@ function ExpenseFormSheet({
                   min="2"
                   max="60"
                   value={installmentCount}
-                  onChange={(e) => {
-                    setInstallmentCount(e.target.value);
-                    const count = Number(e.target.value);
+                  onChange={(e) => setInstallmentCount(e.target.value)}
+                  onBlur={() => {
+                    // Clamp on blur, not on every keystroke — checking mid-type
+                    // (e.g. the "1" typed on the way to "10") against the
+                    // already-chosen start would wrongly reset it back to 1.
+                    const count = Number(installmentCount);
                     if (count > 0 && Number(installmentStart) > count) {
-                      setInstallmentStart(e.target.value);
+                      setInstallmentStart(installmentCount);
                     }
                   }}
                 />

@@ -181,10 +181,10 @@ export interface NewExpenseInput {
   /** When > 1, splits the amount into this many monthly installments instead of one expense. */
   installmentCount?: number;
   /**
-   * Which installment number `date`/`amount` represent (1-based, default 1). Use > 1 to log a
-   * purchase that was already partway through its installment plan before you started tracking
-   * it here — only installments from this number onward are created. When > 1, `amount` is the
-   * amount of a single installment rather than the purchase total.
+   * Which installment number `date` represents (1-based, default 1). Use > 1 to log a purchase
+   * that was already partway through its installment plan before you started tracking it here —
+   * only installments from this number onward are created. `amount` is always the purchase's
+   * total price; each installment is `amount / installmentCount` regardless of where it starts.
    */
   installmentStart?: number;
 }
@@ -218,10 +218,7 @@ export async function addExpense(input: NewExpenseInput) {
   }
 
   const groupId = newId();
-  // Starting past installment 1 means the purchase was already in progress before being logged
-  // here: `amount` is then a single installment's value already, not the purchase total.
-  const perInstallment =
-    start <= 1 ? Math.round((input.amount / count) * 100) / 100 : Math.round(input.amount * 100) / 100;
+  const perInstallment = Math.round((input.amount / count) * 100) / 100;
   const batch = writeBatch(db);
   const startDate = new Date(input.date + "T00:00:00");
 

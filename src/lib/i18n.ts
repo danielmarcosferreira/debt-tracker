@@ -200,8 +200,7 @@ const en = {
   "expenseForm.installmentCount": "Number of installments",
   "expenseForm.installmentStart": "Current installment #",
   "expenseForm.installmentStartHint":
-    "Use 1 for a brand-new purchase. If you're already partway through paying it off, enter the installment number you're on now — only the remaining installments will be added.",
-  "expenseForm.amountPerInstallment": "Amount per installment",
+    "Use 1 for a brand-new purchase. If you're already partway through paying it off, enter the installment number you're on now — only the remaining installments will be added, and the amount above (the purchase's total price) is still divided evenly across all of them.",
   "expenseForm.dateForInstallmentHint": "Date this installment is charged.",
   "expenseForm.submit": "Add expense",
 
@@ -472,8 +471,7 @@ const pt: Record<TranslationKey, string> = {
   "expenseForm.installmentCount": "Número de parcelas",
   "expenseForm.installmentStart": "Parcela atual nº",
   "expenseForm.installmentStartHint":
-    "Use 1 para uma compra nova. Se você já está pagando essa compra, informe o número da parcela em que está agora — só as parcelas restantes serão adicionadas.",
-  "expenseForm.amountPerInstallment": "Valor da parcela",
+    "Use 1 para uma compra nova. Se você já está pagando essa compra, informe o número da parcela em que está agora — só as parcelas restantes serão adicionadas, e o valor acima (o preço total da compra) continua sendo dividido igualmente entre todas elas.",
   "expenseForm.dateForInstallmentHint": "Data em que essa parcela é cobrada.",
   "expenseForm.submit": "Adicionar despesa",
 
