@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import {
+  useCards,
   usePeople,
   useExpenses,
   updatePerson,
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
+import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { PERSON_COLORS } from "@/lib/types";
 import type { Expense } from "@/lib/types";
 import { exportPersonStatement } from "@/lib/pdf";
@@ -33,6 +35,7 @@ import {
   FileDown,
   Link2,
 } from "lucide-react";
+
 
 type Filter = "all" | "unpaid" | "paid";
 
@@ -50,9 +53,11 @@ function PersonDetail() {
   const { user, profile } = useAuth();
   const { t, language } = useLanguage();
   const { people } = usePeople(user?.uid);
+  const { cards } = useCards(user?.uid);
   const { expenses } = useExpenses(user?.uid);
   const [filter, setFilter] = useState<Filter>("all");
   const [editOpen, setEditOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
 
   const person = people.find((p) => p.id === id);
@@ -227,6 +232,12 @@ function PersonDetail() {
                   {formatCurrency(e.amount, e.currency)}
                 </p>
                 <button
+                  onClick={() => setEditingExpense(e)}
+                  className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
                   onClick={() => setDeletingExpense(e)}
                   className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-950"
                 >
@@ -242,6 +253,13 @@ function PersonDetail() {
         open={editOpen}
         onClose={() => setEditOpen(false)}
         person={person}
+      />
+      <EditExpenseDialog
+        expense={editingExpense}
+        allExpenses={expenses}
+        cards={cards}
+        people={people}
+        onClose={() => setEditingExpense(null)}
       />
       <DeleteExpenseDialog
         expense={deletingExpense}

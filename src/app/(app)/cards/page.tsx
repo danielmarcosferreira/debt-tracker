@@ -143,7 +143,19 @@ export default function CardsPage() {
         )}
       </main>
 
-      <CardFormSheet open={sheetOpen} onClose={() => setSheetOpen(false)} editing={editing} />
+      {/*
+        key forces a fresh CardFormSheet instance (and fresh useState
+        initializers) whenever the target card changes — otherwise the sheet
+        stays the same component instance across renders and its fields
+        stay frozen at whatever `editing` was on first mount (null), which is
+        exactly the "edit shows a blank card" bug.
+      */}
+      <CardFormSheet
+        key={editing?.id ?? "new"}
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        editing={editing}
+      />
     </>
   );
 }
@@ -169,8 +181,6 @@ function CardFormSheet({
     editing?.currency ?? profile?.defaultCurrency ?? "USD"
   );
   const [saving, setSaving] = useState(false);
-
-  const key = editing?.id ?? "new";
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,7 +213,7 @@ function CardFormSheet({
       onClose={onClose}
       title={editing ? t("cardForm.editTitle") : t("cardForm.addTitle")}
     >
-      <form key={key} onSubmit={onSubmit} className="flex flex-col gap-4">
+      <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <Field label={t("cardForm.name")} htmlFor="cardName">
           <Input
             id="cardName"

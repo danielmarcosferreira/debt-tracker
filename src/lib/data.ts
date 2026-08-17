@@ -259,3 +259,43 @@ export async function deleteExpenses(ids: string[]) {
   ids.forEach((id) => batch.delete(doc(db, "expenses", id)));
   await batch.commit();
 }
+
+export async function updateExpense(id: string, data: Partial<Omit<Expense, "id">>) {
+  await updateDoc(doc(db, "expenses", id), data);
+}
+
+/** Fields that make sense to apply uniformly across a whole installment group. `date` is deliberately excluded — each installment keeps its own date. */
+export interface ExpenseSharedEdit {
+  description: string;
+  amount: number;
+  cardId: string;
+  cardName: string;
+  currency: CurrencyCode;
+  personId: string | null;
+  forSelf: boolean;
+  linkedUserId?: string | null;
+  category: Category;
+}
+
+/**
+ * Edits one expense. When `futureIds` is non-empty, the shared fields (not
+ * `date` — each installment keeps its own) are also applied to every id in
+ * `futureIds` atomically, so "this and future installments" lands as one
+ * commit instead of racing individual writes.
+ */
+export async function updateExpenseWithScope(
+  expenseId: string,
+  date: string,
+  shared: ExpenseSharedEdit,
+  futureIds: string[] = []
+) {
+  const sharedData = { ...shared, linkedUserId: shared.linkedUserId ?? null };
+  if (futureIds.length === 0) {
+    await updateExpense(expenseId, { ...sharedData, date });
+    return;
+  }
+  const batch = writeBatch(db);
+  batch.update(doc(db, "expenses", expenseId), { ...sharedData, date });
+  futureIds.forEach((id) => batch.update(doc(db, "expenses", id), sharedData));
+  await batch.commit();
+}

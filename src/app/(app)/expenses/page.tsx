@@ -17,7 +17,8 @@ import { categoryLabel } from "@/lib/i18n";
 import { CATEGORIES } from "@/lib/types";
 import type { Category, CurrencyCode, Expense } from "@/lib/types";
 import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
-import { Receipt, Plus, CheckCircle2, Circle, Trash2, Search } from "lucide-react";
+import { EditExpenseDialog } from "@/components/EditExpenseDialog";
+import { Receipt, Plus, CheckCircle2, Circle, Pencil, Trash2, Search } from "lucide-react";
 
 type StatusFilter = "all" | "unpaid" | "paid";
 type PersonFilter = "all" | "me" | string;
@@ -45,6 +46,7 @@ function ExpensesContent() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
   const monthScope = useMonthScope();
   const { monthKey } = monthScope;
@@ -203,6 +205,12 @@ function ExpensesContent() {
                     {formatCurrency(e.amount, e.currency)}
                   </p>
                   <button
+                    onClick={() => setEditingExpense(e)}
+                    className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
                     onClick={() => setDeletingExpense(e)}
                     className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-950"
                   >
@@ -219,6 +227,13 @@ function ExpensesContent() {
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         defaultCardId={cardFilter !== "all" ? cardFilter : undefined}
+      />
+      <EditExpenseDialog
+        expense={editingExpense}
+        allExpenses={expenses}
+        cards={cards}
+        people={people}
+        onClose={() => setEditingExpense(null)}
       />
       <DeleteExpenseDialog
         expense={deletingExpense}
@@ -410,7 +425,8 @@ function ExpenseFormSheet({
                   value={installmentCount}
                   onChange={(e) => {
                     setInstallmentCount(e.target.value);
-                    if (Number(installmentStart) > Number(e.target.value)) {
+                    const count = Number(e.target.value);
+                    if (count > 0 && Number(installmentStart) > count) {
                       setInstallmentStart(e.target.value);
                     }
                   }}

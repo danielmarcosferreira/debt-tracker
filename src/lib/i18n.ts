@@ -19,6 +19,14 @@ const en = {
   "deleteExpense.thisAndFutureHint": "Installments {index}–{count} will be deleted ({remaining} total).",
   "deleteExpense.delete": "Delete",
 
+  "editExpense.title": "Edit expense",
+  "editExpense.onlyThis": "Only this installment",
+  "editExpense.onlyThisHint": "{index} of {count} — the rest are left untouched.",
+  "editExpense.thisAndFuture": "This and all future installments",
+  "editExpense.thisAndFutureHint":
+    "Description, amount, card, person and category will also apply to installments {index}–{count} ({remaining} total). Dates stay as they are.",
+  "editExpense.save": "Save changes",
+
   "nav.home": "Home",
   "nav.cards": "Cards",
   "nav.expenses": "Expenses",
@@ -261,6 +269,14 @@ const pt: Record<TranslationKey, string> = {
   "deleteExpense.thisAndFuture": "Esta e todas as parcelas futuras",
   "deleteExpense.thisAndFutureHint": "As parcelas {index}–{count} serão excluídas ({remaining} no total).",
   "deleteExpense.delete": "Excluir",
+
+  "editExpense.title": "Editar despesa",
+  "editExpense.onlyThis": "Somente esta parcela",
+  "editExpense.onlyThisHint": "{index} de {count} — as demais permanecem intactas.",
+  "editExpense.thisAndFuture": "Esta e todas as parcelas futuras",
+  "editExpense.thisAndFutureHint":
+    "Descrição, valor, cartão, pessoa e categoria também serão aplicados às parcelas {index}–{count} ({remaining} no total). As datas permanecem como estão.",
+  "editExpense.save": "Salvar alterações",
 
   "nav.home": "Início",
   "nav.cards": "Cartões",
