@@ -40,6 +40,18 @@ export function personTotals(personId: string, expenses: Expense[]) {
   return { owed, paid, count: mine.length, expenses: mine };
 }
 
+/** Groups expenses by the card they're on, each with its own summed total (safe since a card's expenses share its currency). */
+export function groupByCard(expenses: Expense[]) {
+  const groups = new Map<string, { cardId: string; cardName: string; expenses: Expense[] }>();
+  for (const e of expenses) {
+    if (!groups.has(e.cardId)) groups.set(e.cardId, { cardId: e.cardId, cardName: e.cardName, expenses: [] });
+    groups.get(e.cardId)!.expenses.push(e);
+  }
+  return Array.from(groups.values())
+    .map((g) => ({ ...g, total: g.expenses.reduce((sum, e) => sum + e.amount, 0) }))
+    .sort((a, b) => b.total - a.total);
+}
+
 /** Cross-owner debts: what the signed-in (linked) user owes, grouped by the owner's name. */
 export function debtsByOwner(expenses: Expense[]) {
   const groups = new Map<string, { ownerName: string; expenses: Expense[] }>();

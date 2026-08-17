@@ -119,6 +119,13 @@ const en = {
   "cardForm.submitAdd": "Add card",
   "cardForm.submitSave": "Save changes",
 
+  "cardDetail.back": "Cards",
+  "cardDetail.back2": "Back",
+  "cardDetail.notFound": "Card not found.",
+  "cardDetail.emptyTitle": "No expenses",
+  "cardDetail.emptyDescAll": "No expenses on this card yet.",
+  "cardDetail.emptyDescFiltered": "No {filter} expenses on this card yet.",
+
   "people.title": "People",
   "people.count_one": "{count} person",
   "people.count_other": "{count} people",
@@ -373,6 +380,13 @@ const pt: Record<TranslationKey, string> = {
   "cardForm.color": "Cor",
   "cardForm.submitAdd": "Adicionar cartão",
   "cardForm.submitSave": "Salvar alterações",
+
+  "cardDetail.back": "Cartões",
+  "cardDetail.back2": "Voltar",
+  "cardDetail.notFound": "Cartão não encontrado.",
+  "cardDetail.emptyTitle": "Nenhuma despesa",
+  "cardDetail.emptyDescAll": "Ainda não há despesas neste cartão.",
+  "cardDetail.emptyDescFiltered": "Nenhuma despesa {filter} neste cartão ainda.",
 
   "people.title": "Pessoas",
   "people.count_one": "{count} pessoa",
