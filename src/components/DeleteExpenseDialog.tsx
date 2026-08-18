@@ -22,15 +22,25 @@ export function DeleteExpenseDialog({
   onClose,
 }: DeleteExpenseDialogProps) {
   const { t } = useLanguage();
+  // Lifted here (rather than left inside DeleteExpenseForm) so the Sheet can
+  // block closing while a delete is in flight.
+  const [deleting, setDeleting] = useState(false);
 
   return (
-    <Sheet open={!!expense} onClose={onClose} title={t("deleteExpense.title")}>
+    <Sheet
+      open={!!expense}
+      onClose={onClose}
+      title={t("deleteExpense.title")}
+      preventClose={deleting}
+    >
       {expense && (
         <DeleteExpenseForm
           key={expense.id}
           expense={expense}
           allExpenses={allExpenses}
           onClose={onClose}
+          deleting={deleting}
+          setDeleting={setDeleting}
         />
       )}
     </Sheet>
@@ -41,14 +51,17 @@ function DeleteExpenseForm({
   expense,
   allExpenses,
   onClose,
+  deleting,
+  setDeleting,
 }: {
   expense: Expense;
   allExpenses: Expense[];
   onClose: () => void;
+  deleting: boolean;
+  setDeleting: (deleting: boolean) => void;
 }) {
   const { t, language } = useLanguage();
   const [mode, setMode] = useState<"only" | "future">("only");
-  const [deleting, setDeleting] = useState(false);
 
   const installment = expense.installment ?? null;
   const future = installment
@@ -121,7 +134,13 @@ function DeleteExpenseForm({
       )}
 
       <div className="flex gap-2">
-        <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
+        <Button
+          type="button"
+          variant="secondary"
+          className="flex-1"
+          disabled={deleting}
+          onClick={onClose}
+        >
           {t("common.cancel")}
         </Button>
         <Button

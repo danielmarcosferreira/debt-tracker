@@ -9,22 +9,27 @@ export function Sheet({
   onClose,
   title,
   children,
+  preventClose = false,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  /** Blocks backdrop click, Escape, and the X button — e.g. while a save/delete request is in flight. */
+  preventClose?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !preventClose) onClose();
+    };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [open, onClose]);
+  }, [open, onClose, preventClose]);
 
   if (!open) return null;
 
@@ -32,7 +37,7 @@ export function Sheet({
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       <div
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] dark:bg-black/60"
-        onClick={onClose}
+        onClick={preventClose ? undefined : onClose}
       />
       {/*
         overflow-x-hidden is a hard guard: some mobile browsers render native
@@ -48,7 +53,8 @@ export function Sheet({
           </h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            disabled={preventClose}
+            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-300"
             aria-label="Close"
           >
             <X className="h-5 w-5" />

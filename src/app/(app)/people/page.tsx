@@ -121,7 +121,7 @@ function PersonFormSheet({ open, onClose }: { open: boolean; onClose: () => void
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title={t("personForm.addTitle")}>
+    <Sheet open={open} onClose={onClose} title={t("personForm.addTitle")} preventClose={saving}>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <Field label={t("personForm.name")} htmlFor="personName">
           <Input

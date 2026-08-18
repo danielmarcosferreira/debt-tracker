@@ -353,7 +353,12 @@ function EditPersonSheet({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title={t("personForm.editTitle")}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={t("personForm.editTitle")}
+      preventClose={saving}
+    >
       <form key={person.id} onSubmit={onSubmit} className="flex flex-col gap-4">
         <Field label={t("personForm.name")} htmlFor="editName">
           <Input id="editName" required value={name} onChange={(e) => setName(e.target.value)} />

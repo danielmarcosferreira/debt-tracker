@@ -20,12 +20,18 @@ export function CardFormSheet({
   editing: Card | null;
 }) {
   const { t } = useLanguage();
+  // Lifted here (rather than left inside CardForm) so the Sheet can block
+  // closing while a save is in flight — losing an in-progress edit to a
+  // stray backdrop tap or Escape press is exactly the kind of thing that
+  // makes people distrust a form.
+  const [saving, setSaving] = useState(false);
 
   return (
     <Sheet
       open={open}
       onClose={onClose}
       title={editing ? t("cardForm.editTitle") : t("cardForm.addTitle")}
+      preventClose={saving}
     >
       {/*
         key forces a fresh form instance (and fresh useState initializers)
@@ -33,12 +39,28 @@ export function CardFormSheet({
         component instance across renders and its fields stay frozen at
         whatever `editing` was on first mount.
       */}
-      <CardForm key={editing?.id ?? "new"} onClose={onClose} editing={editing} />
+      <CardForm
+        key={editing?.id ?? "new"}
+        onClose={onClose}
+        editing={editing}
+        saving={saving}
+        setSaving={setSaving}
+      />
     </Sheet>
   );
 }
 
-function CardForm({ onClose, editing }: { onClose: () => void; editing: Card | null }) {
+function CardForm({
+  onClose,
+  editing,
+  saving,
+  setSaving,
+}: {
+  onClose: () => void;
+  editing: Card | null;
+  saving: boolean;
+  setSaving: (saving: boolean) => void;
+}) {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
   const [name, setName] = useState(editing?.name ?? "");
@@ -50,7 +72,6 @@ function CardForm({ onClose, editing }: { onClose: () => void; editing: Card | n
   const [currency, setCurrency] = useState<CurrencyCode>(
     editing?.currency ?? profile?.defaultCurrency ?? "USD"
   );
-  const [saving, setSaving] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -331,7 +331,7 @@ function ExpenseFormSheet({
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title={t("expenses.addExpense")}>
+    <Sheet open={open} onClose={onClose} title={t("expenses.addExpense")} preventClose={saving}>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <Field label={t("expenseForm.description")} htmlFor="description">
           <Input

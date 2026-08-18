@@ -29,9 +29,17 @@ export function EditExpenseDialog({
   onClose,
 }: EditExpenseDialogProps) {
   const { t } = useLanguage();
+  // Lifted here (rather than left inside EditExpenseForm) so the Sheet can
+  // block closing while a save is in flight.
+  const [saving, setSaving] = useState(false);
 
   return (
-    <Sheet open={!!expense} onClose={onClose} title={t("editExpense.title")}>
+    <Sheet
+      open={!!expense}
+      onClose={onClose}
+      title={t("editExpense.title")}
+      preventClose={saving}
+    >
       {expense && (
         <EditExpenseForm
           key={expense.id}
@@ -40,6 +48,8 @@ export function EditExpenseDialog({
           cards={cards}
           people={people}
           onClose={onClose}
+          saving={saving}
+          setSaving={setSaving}
         />
       )}
     </Sheet>
@@ -52,12 +62,16 @@ function EditExpenseForm({
   cards,
   people,
   onClose,
+  saving,
+  setSaving,
 }: {
   expense: Expense;
   allExpenses: Expense[];
   cards: Card[];
   people: Person[];
   onClose: () => void;
+  saving: boolean;
+  setSaving: (saving: boolean) => void;
 }) {
   const { t, language } = useLanguage();
   const [description, setDescription] = useState(expense.description);
@@ -67,7 +81,6 @@ function EditExpenseForm({
   const [personId, setPersonId] = useState(expense.personId ?? "");
   const [category, setCategory] = useState<Category>(expense.category);
   const [mode, setMode] = useState<"only" | "future">("only");
-  const [saving, setSaving] = useState(false);
 
   const selectedCard = cards.find((c) => c.id === cardId);
   const installment = expense.installment ?? null;
