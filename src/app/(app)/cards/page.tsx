@@ -6,9 +6,10 @@ import { TopBar } from "@/components/TopBar";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { CardFormSheet } from "@/components/CardFormSheet";
+import { DeleteCardDialog } from "@/components/DeleteCardDialog";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
-import { useCards, useExpenses, deleteCard } from "@/lib/data";
+import { useCards, useExpenses } from "@/lib/data";
 import { cardBalance } from "@/lib/aggregates";
 import { formatCurrency } from "@/lib/utils";
 import type { Card } from "@/lib/types";
@@ -21,6 +22,7 @@ export default function CardsPage() {
   const { expenses } = useExpenses(user?.uid);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<Card | null>(null);
+  const [deleting, setDeleting] = useState<Card | null>(null);
 
   const openNew = () => {
     setEditing(null);
@@ -30,11 +32,6 @@ export default function CardsPage() {
   const openEdit = (card: Card) => {
     setEditing(card);
     setSheetOpen(true);
-  };
-
-  const onDelete = async (card: Card) => {
-    if (!confirm(t("cards.deleteConfirm", { name: card.name }))) return;
-    await deleteCard(card.id);
   };
 
   return (
@@ -94,7 +91,7 @@ export default function CardsPage() {
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => onDelete(card)}
+                        onClick={() => setDeleting(card)}
                         className="rounded-full p-2 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -148,6 +145,7 @@ export default function CardsPage() {
         onClose={() => setSheetOpen(false)}
         editing={editing}
       />
+      <DeleteCardDialog card={deleting} onClose={() => setDeleting(null)} />
     </>
   );
 }

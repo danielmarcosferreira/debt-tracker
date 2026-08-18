@@ -5,12 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
-import { useCards, usePeople, useExpenses, deleteCard, markExpensePaid } from "@/lib/data";
+import { useCards, usePeople, useExpenses, markExpensePaid } from "@/lib/data";
 import { cardBalance } from "@/lib/aggregates";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CardFormSheet } from "@/components/CardFormSheet";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
+import { DeleteCardDialog } from "@/components/DeleteCardDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { Expense } from "@/lib/types";
 import {
@@ -43,6 +44,7 @@ function CardDetail() {
   const { expenses } = useExpenses(user?.uid);
   const [filter, setFilter] = useState<Filter>("all");
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
 
@@ -83,12 +85,6 @@ function CardDetail() {
   const balance = cardBalance(card.id, expenses);
   const pct = card.limit ? Math.min(100, Math.round((balance / card.limit) * 100)) : null;
 
-  const onDelete = async () => {
-    if (!confirm(t("cards.deleteConfirm", { name: card.name }))) return;
-    await deleteCard(card.id);
-    router.push("/cards");
-  };
-
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur px-5 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] dark:border-slate-800 dark:bg-slate-950/95">
@@ -124,7 +120,7 @@ function CardDetail() {
                 <Pencil className="h-4 w-4" />
               </button>
               <button
-                onClick={onDelete}
+                onClick={() => setDeleteOpen(true)}
                 className="rounded-full p-2 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
               >
                 <Trash2 className="h-4 w-4" />
@@ -246,6 +242,11 @@ function CardDetail() {
       </main>
 
       <CardFormSheet open={editOpen} onClose={() => setEditOpen(false)} editing={card} />
+      <DeleteCardDialog
+        card={deleteOpen ? card : null}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={() => router.push("/cards")}
+      />
       <EditExpenseDialog
         expense={editingExpense}
         allExpenses={expenses}

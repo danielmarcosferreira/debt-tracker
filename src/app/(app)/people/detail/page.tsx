@@ -5,14 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
-import {
-  useCards,
-  usePeople,
-  useExpenses,
-  updatePerson,
-  deletePerson,
-  markExpensePaid,
-} from "@/lib/data";
+import { useCards, usePeople, useExpenses, updatePerson, markExpensePaid } from "@/lib/data";
 import { personTotals, groupByMonth } from "@/lib/aggregates";
 import { useMonthScope, useTodayMonthKey } from "@/lib/hooks";
 import { expensesInScope, formatCurrency, formatDate, formatMonthYear, initials } from "@/lib/utils";
@@ -23,6 +16,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { MonthScopePicker } from "@/components/MonthScopePicker";
 import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
+import { DeletePersonDialog } from "@/components/DeletePersonDialog";
 import { PERSON_COLORS } from "@/lib/types";
 import type { Expense, LanguageCode } from "@/lib/types";
 import { exportPersonStatement } from "@/lib/pdf";
@@ -57,6 +51,7 @@ function PersonDetail() {
   const { expenses } = useExpenses(user?.uid);
   const [filter, setFilter] = useState<Filter>("all");
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
   const monthScope = useMonthScope(undefined, "monthScope:people-detail");
@@ -100,12 +95,6 @@ function PersonDetail() {
   }
 
   const currency = all[0]?.currency ?? profile?.defaultCurrency ?? "USD";
-
-  const onDelete = async () => {
-    if (!confirm(t("peopleDetail.deleteConfirm", { name: person.name }))) return;
-    await deletePerson(person.id);
-    router.push("/people");
-  };
 
   return (
     <>
@@ -158,7 +147,7 @@ function PersonDetail() {
                 <Pencil className="h-4 w-4" />
               </button>
               <button
-                onClick={onDelete}
+                onClick={() => setDeleteOpen(true)}
                 className="rounded-full p-2 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
               >
                 <Trash2 className="h-4 w-4" />
@@ -259,6 +248,11 @@ function PersonDetail() {
         expense={deletingExpense}
         allExpenses={expenses}
         onClose={() => setDeletingExpense(null)}
+      />
+      <DeletePersonDialog
+        person={deleteOpen ? person : null}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={() => router.push("/people")}
       />
     </>
   );

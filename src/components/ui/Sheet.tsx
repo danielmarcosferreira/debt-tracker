@@ -34,7 +34,7 @@ export function Sheet({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] dark:bg-black/60"
         onClick={preventClose ? undefined : onClose}
@@ -46,7 +46,7 @@ export function Sheet({
         width and take the whole page with it. Clipping here keeps that
         contained to the sheet instead of blowing out the page.
       */}
-      <div className="relative z-10 max-h-[92vh] w-full overflow-x-hidden overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 shadow-xl sm:max-w-md sm:rounded-3xl sm:p-6 dark:bg-slate-900">
+      <div className="relative z-10 max-h-[85vh] w-full overflow-x-hidden overflow-y-auto rounded-3xl bg-white p-5 shadow-xl sm:max-w-md sm:p-6 dark:bg-slate-900">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             {title}

@@ -104,6 +104,8 @@ const en = {
   "cards.dueOnDay": "Due on day {day}",
   "cards.pctOfLimit": "{pct}% of {limit} limit",
   "cards.deleteConfirm": 'Delete "{name}"? Its expenses will stay but lose this card reference.',
+  "cards.deleteTitle": "Delete card",
+  "cards.deleteBody": "Its expenses will stay but lose this card reference. This can't be undone.",
 
   "cardForm.addTitle": "Add card",
   "cardForm.editTitle": "Edit card",
@@ -159,6 +161,9 @@ const en = {
   "peopleDetail.emptyDescFiltered": "No {filter} expenses for {name} yet.",
   "peopleDetail.deleteConfirm":
     "Delete {name}? Their expenses will remain but lose this person reference.",
+  "peopleDetail.deleteTitle": "Delete person",
+  "peopleDetail.deleteBody":
+    "Their expenses will remain but lose this person reference. This can't be undone.",
   "peopleDetail.notFound": "Person not found.",
   "peopleDetail.back2": "Back",
 
@@ -374,6 +379,9 @@ const pt: Record<TranslationKey, string> = {
   "cards.pctOfLimit": "{pct}% do limite de {limit}",
   "cards.deleteConfirm":
     'Excluir "{name}"? As despesas permanecerão, mas perderão a referência a este cartão.',
+  "cards.deleteTitle": "Excluir cartão",
+  "cards.deleteBody":
+    "As despesas permanecerão, mas perderão a referência a este cartão. Essa ação não pode ser desfeita.",
 
   "cardForm.addTitle": "Adicionar cartão",
   "cardForm.editTitle": "Editar cartão",
@@ -430,6 +438,9 @@ const pt: Record<TranslationKey, string> = {
   "peopleDetail.emptyDescFiltered": "Nenhuma despesa {filter} para {name} ainda.",
   "peopleDetail.deleteConfirm":
     "Excluir {name}? As despesas dessa pessoa permanecerão, mas perderão essa referência.",
+  "peopleDetail.deleteTitle": "Excluir pessoa",
+  "peopleDetail.deleteBody":
+    "As despesas dessa pessoa permanecerão, mas perderão essa referência. Essa ação não pode ser desfeita.",
   "peopleDetail.notFound": "Pessoa não encontrada.",
   "peopleDetail.back2": "Voltar",
 
