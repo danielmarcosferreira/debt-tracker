@@ -261,7 +261,7 @@ export async function updateExpense(id: string, data: Partial<Omit<Expense, "id"
   await updateDoc(doc(db, "expenses", id), data);
 }
 
-/** Fields that make sense to apply uniformly across a whole installment group. `date` is deliberately excluded — each installment keeps its own date. */
+/** Fields that make sense to apply uniformly across a whole installment group. `date` is deliberately excluded — see `dateShifts` below for how date edits propagate instead. */
 export interface ExpenseSharedEdit {
   description: string;
   amount: number;
@@ -275,24 +275,34 @@ export interface ExpenseSharedEdit {
 }
 
 /**
- * Edits one expense. When `futureIds` is non-empty, the shared fields (not
- * `date` — each installment keeps its own) are also applied to every id in
- * `futureIds` atomically, so "this and future installments" lands as one
- * commit instead of racing individual writes.
+ * Edits one expense. When `futureIds` is non-empty, the shared fields are
+ * also applied to every id in `futureIds`. When `dateShifts` is non-empty
+ * (the expense's date actually changed and it belongs to an installment
+ * group), every OTHER installment in the group — past or future — is
+ * rescheduled by the same amount, so the whole plan stays evenly spaced.
+ * A single batch commit covers all of it, merging both sets of edits when
+ * an id appears in both (e.g. a future installment whose date also shifts).
  */
 export async function updateExpenseWithScope(
   expenseId: string,
   date: string,
   shared: ExpenseSharedEdit,
-  futureIds: string[] = []
+  futureIds: string[] = [],
+  dateShifts: { id: string; date: string }[] = []
 ) {
   const sharedData = { ...shared, linkedUserId: shared.linkedUserId ?? null };
-  if (futureIds.length === 0) {
+
+  if (futureIds.length === 0 && dateShifts.length === 0) {
     await updateExpense(expenseId, { ...sharedData, date });
     return;
   }
+
+  const updates = new Map<string, Partial<Omit<Expense, "id">>>();
+  dateShifts.forEach(({ id, date: shiftedDate }) => updates.set(id, { date: shiftedDate }));
+  futureIds.forEach((id) => updates.set(id, { ...updates.get(id), ...sharedData }));
+
   const batch = writeBatch(db);
   batch.update(doc(db, "expenses", expenseId), { ...sharedData, date });
-  futureIds.forEach((id) => batch.update(doc(db, "expenses", id), sharedData));
+  updates.forEach((data, id) => batch.update(doc(db, "expenses", id), data));
   await batch.commit();
 }

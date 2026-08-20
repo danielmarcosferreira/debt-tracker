@@ -118,7 +118,15 @@ export default function CardsPage() {
 
                     {pct !== null && (
                       <div className="mt-2">
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {t("cards.availableLimit", {
+                            amount: formatCurrency(
+                              Math.max(0, card.limit! - balance),
+                              card.currency
+                            ),
+                          })}
+                        </p>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                           <div
                             className={`h-full rounded-full ${pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-indigo-500"}`}
                             style={{ width: `${pct}%` }}

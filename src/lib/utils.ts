@@ -95,6 +95,22 @@ export function expensesInScope(
   return expenses.filter((e) => e.date.slice(0, 7) >= todayMonthKey);
 }
 
+/**
+ * Shifts an ISO "yyyy-MM-dd" date by `deltaMonths` calendar months and sets
+ * its day-of-month to `day` (clamped to the target month's actual length,
+ * e.g. day 31 shifted into February lands on the 28th/29th). Used to keep a
+ * whole installment plan in sync when one installment's date is edited —
+ * every other installment shifts by the same amount.
+ */
+export function shiftInstallmentDate(iso: string, deltaMonths: number, day: number): string {
+  const d = parseISO(iso);
+  d.setDate(1); // neutralize day-of-month first so setMonth can't roll into the wrong month
+  d.setMonth(d.getMonth() + deltaMonths);
+  const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, daysInMonth));
+  return format(d, "yyyy-MM-dd");
+}
+
 export function initials(name: string) {
   return name
     .trim()

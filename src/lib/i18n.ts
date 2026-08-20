@@ -24,7 +24,9 @@ const en = {
   "editExpense.onlyThisHint": "{index} of {count} — the rest are left untouched.",
   "editExpense.thisAndFuture": "This and all future installments",
   "editExpense.thisAndFutureHint":
-    "Description, amount, card, person and category will also apply to installments {index}–{count} ({remaining} total). Dates stay as they are.",
+    "Description, amount, card, person and category will also apply to installments {index}–{count} ({remaining} total).",
+  "editExpense.dateShiftHint":
+    "Changing the date reschedules every installment in this purchase by the same amount — e.g. a month later, or a different day of the month.",
   "editExpense.save": "Save changes",
 
   "nav.home": "Home",
@@ -102,6 +104,7 @@ const en = {
   "cards.emptyDesc": "Add a credit card to start tracking its balance and expenses.",
   "cards.currentBalance": "Current balance",
   "cards.dueOnDay": "Due on day {day}",
+  "cards.availableLimit": "{amount} available",
   "cards.pctOfLimit": "{pct}% of {limit} limit",
   "cards.deleteConfirm": 'Delete "{name}"? Its expenses will stay but lose this card reference.',
   "cards.deleteTitle": "Delete card",
@@ -295,7 +298,9 @@ const pt: Record<TranslationKey, string> = {
   "editExpense.onlyThisHint": "{index} de {count} — as demais permanecem intactas.",
   "editExpense.thisAndFuture": "Esta e todas as parcelas futuras",
   "editExpense.thisAndFutureHint":
-    "Descrição, valor, cartão, pessoa e categoria também serão aplicados às parcelas {index}–{count} ({remaining} no total). As datas permanecem como estão.",
+    "Descrição, valor, cartão, pessoa e categoria também serão aplicados às parcelas {index}–{count} ({remaining} no total).",
+  "editExpense.dateShiftHint":
+    "Alterar a data reagenda todas as parcelas desta compra pelo mesmo intervalo — por exemplo, um mês depois, ou em outro dia do mês.",
   "editExpense.save": "Salvar alterações",
 
   "nav.home": "Início",
@@ -376,6 +381,7 @@ const pt: Record<TranslationKey, string> = {
     "Adicione um cartão de crédito para começar a rastrear o saldo e as despesas.",
   "cards.currentBalance": "Saldo atual",
   "cards.dueOnDay": "Vence no dia {day}",
+  "cards.availableLimit": "{amount} disponível",
   "cards.pctOfLimit": "{pct}% do limite de {limit}",
   "cards.deleteConfirm":
     'Excluir "{name}"? As despesas permanecerão, mas perderão a referência a este cartão.',

@@ -5,7 +5,7 @@ import { Sheet } from "./ui/Sheet";
 import { Button } from "./ui/Button";
 import { CurrencyInput, Field, Input, Select } from "./ui/Input";
 import { useLanguage } from "@/lib/language-context";
-import { cn } from "@/lib/utils";
+import { cn, shiftInstallmentDate } from "@/lib/utils";
 import { updateExpenseWithScope } from "@/lib/data";
 import { categoryLabel } from "@/lib/i18n";
 import { CATEGORIES } from "@/lib/types";
@@ -93,6 +93,13 @@ function EditExpenseForm({
       )
     : [];
   const hasFuture = future.length > 0;
+  // Every OTHER installment in the group, past or future — used to reschedule
+  // the whole plan together when this installment's date changes.
+  const otherInstallments = installment
+    ? allExpenses.filter(
+        (e) => e.id !== expense.id && e.installment?.groupId === installment.groupId
+      )
+    : [];
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +107,21 @@ function EditExpenseForm({
     setSaving(true);
     try {
       const person = people.find((p) => p.id === personId);
+      const dateShifts =
+        otherInstallments.length > 0 && date !== expense.date
+          ? (() => {
+              const oldDate = new Date(expense.date + "T00:00:00");
+              const newDate = new Date(date + "T00:00:00");
+              const deltaMonths =
+                (newDate.getFullYear() - oldDate.getFullYear()) * 12 +
+                (newDate.getMonth() - oldDate.getMonth());
+              const day = newDate.getDate();
+              return otherInstallments.map((other) => ({
+                id: other.id,
+                date: shiftInstallmentDate(other.date, deltaMonths, day),
+              }));
+            })()
+          : [];
       await updateExpenseWithScope(
         expense.id,
         date,
@@ -114,7 +136,8 @@ function EditExpenseForm({
           linkedUserId: person?.linkedUserId ?? null,
           category,
         },
-        hasFuture && mode === "future" ? future.map((f) => f.id) : []
+        hasFuture && mode === "future" ? future.map((f) => f.id) : [],
+        dateShifts
       );
       onClose();
     } finally {
@@ -152,6 +175,11 @@ function EditExpenseForm({
           />
         </Field>
       </div>
+      {otherInstallments.length > 0 && (
+        <p className="-mt-2 text-xs text-slate-400 dark:text-slate-500">
+          {t("editExpense.dateShiftHint")}
+        </p>
+      )}
       <Field label={t("expenseForm.card")} htmlFor="editCard">
         <Select id="editCard" required value={cardId} onChange={(e) => setCardId(e.target.value)}>
           {cards.map((c) => (
