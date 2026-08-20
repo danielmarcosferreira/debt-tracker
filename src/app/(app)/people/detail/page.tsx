@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { useCards, usePeople, useExpenses, updatePerson, markExpensePaid } from "@/lib/data";
-import { personTotals, groupByMonth } from "@/lib/aggregates";
+import { personTotals, groupByMonth, groupByDueDay, type CurrencyTotals } from "@/lib/aggregates";
 import { useMonthScope, useTodayMonthKey } from "@/lib/hooks";
 import { expensesInScope, formatCurrency, formatDate, formatMonthYear, initials } from "@/lib/utils";
 import { Sheet } from "@/components/ui/Sheet";
@@ -18,7 +18,7 @@ import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { DeletePersonDialog } from "@/components/DeletePersonDialog";
 import { PERSON_COLORS } from "@/lib/types";
-import type { Expense, LanguageCode } from "@/lib/types";
+import type { Card, CurrencyCode, Expense, LanguageCode } from "@/lib/types";
 import { exportPersonStatement } from "@/lib/pdf";
 import {
   ArrowLeft,
@@ -133,8 +133,24 @@ function PersonDetail() {
             </div>
             <div className="flex gap-1">
               <button
-                onClick={() => exportPersonStatement(person, all, profile?.name ?? "", language)}
-                disabled={all.length === 0}
+                onClick={() =>
+                  exportPersonStatement(
+                    person,
+                    filtered,
+                    cards,
+                    profile?.name ?? "",
+                    language,
+                    monthScope.scope === "month"
+                      ? formatMonthYear(
+                          monthScope.monthKey ??
+                            todayMonthKey ??
+                            new Date().toISOString().slice(0, 7),
+                          language
+                        )
+                      : undefined
+                  )
+                }
+                disabled={filtered.length === 0}
                 title={t("peopleDetail.exportPdf")}
                 className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40 dark:hover:bg-slate-800 dark:hover:text-slate-300"
               >
@@ -189,13 +205,10 @@ function PersonDetail() {
             }
           />
         ) : monthGroups ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-5">
             {monthGroups.map((mg) => (
-              <div
-                key={mg.monthKey}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
-              >
-                <div className="flex items-center justify-between bg-slate-50 px-3.5 py-2.5 dark:bg-slate-800/50">
+              <div key={mg.monthKey}>
+                <div className="mb-2 flex items-center justify-between px-1">
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                     {formatMonthYear(mg.monthKey, language)}
                   </p>
@@ -203,32 +216,24 @@ function PersonDetail() {
                     {formatCurrency(mg.total, mg.expenses[0]?.currency)}
                   </p>
                 </div>
-                <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
-                  {mg.expenses.map((e) => (
-                    <ExpenseRow
-                      key={e.id}
-                      expense={e}
-                      language={language}
-                      onEdit={() => setEditingExpense(e)}
-                      onDelete={() => setDeletingExpense(e)}
-                    />
-                  ))}
-                </div>
+                <DueDayGroups
+                  expenses={mg.expenses}
+                  cards={cards}
+                  language={language}
+                  onEdit={setEditingExpense}
+                  onDelete={setDeletingExpense}
+                />
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-col divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
-            {filtered.map((e) => (
-              <ExpenseRow
-                key={e.id}
-                expense={e}
-                language={language}
-                onEdit={() => setEditingExpense(e)}
-                onDelete={() => setDeletingExpense(e)}
-              />
-            ))}
-          </div>
+          <DueDayGroups
+            expenses={filtered}
+            cards={cards}
+            language={language}
+            onEdit={setEditingExpense}
+            onDelete={setDeletingExpense}
+          />
         )}
       </main>
 
@@ -255,6 +260,92 @@ function PersonDetail() {
         onDeleted={() => router.push("/people")}
       />
     </>
+  );
+}
+
+function totalsLabel(totals: CurrencyTotals) {
+  const entries = Object.entries(totals) as [CurrencyCode, number][];
+  if (entries.length === 0) return formatCurrency(0);
+  return entries.map(([code, amt]) => formatCurrency(amt, code)).join(" + ");
+}
+
+/**
+ * Groups `expenses` by their card's due day, then by card within each
+ * due-day bucket — e.g. everything due on the 5th (across however many
+ * cards share that due day) listed together, with a total at the bottom of
+ * that bucket, before the next due day's bucket.
+ */
+function DueDayGroups({
+  expenses,
+  cards,
+  language,
+  onEdit,
+  onDelete,
+}: {
+  expenses: Expense[];
+  cards: Card[];
+  language: LanguageCode;
+  onEdit: (e: Expense) => void;
+  onDelete: (e: Expense) => void;
+}) {
+  const { t } = useLanguage();
+  const dueDayGroups = groupByDueDay(expenses, cards);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {dueDayGroups.map((dg) => (
+        <div
+          key={dg.dueDay ?? "none"}
+          className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div className="bg-slate-50 px-3.5 py-2.5 dark:bg-slate-800/50">
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              {dg.dueDay !== null
+                ? t("cards.dueOnDay", { day: dg.dueDay })
+                : t("peopleDetail.noDueDay")}
+            </p>
+          </div>
+
+          {dg.cardGroups.map((cg) => (
+            <div
+              key={cg.cardId}
+              className="border-t border-slate-100 dark:border-slate-800"
+            >
+              <div className="flex items-center justify-between px-3.5 py-2">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {cg.cardName}
+                </p>
+                <p className="text-xs font-medium tabular-nums text-slate-500 dark:text-slate-400">
+                  {formatCurrency(cg.total, cg.expenses[0]?.currency)}
+                </p>
+              </div>
+              <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
+                {cg.expenses.map((e) => (
+                  <ExpenseRow
+                    key={e.id}
+                    expense={e}
+                    language={language}
+                    onEdit={() => onEdit(e)}
+                    onDelete={() => onDelete(e)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-3.5 py-2.5 dark:border-slate-800 dark:bg-slate-800/50">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              {dg.dueDay !== null
+                ? t("peopleDetail.dueDayTotal", { day: dg.dueDay })
+                : t("peopleDetail.noDueDay")}
+            </p>
+            <p className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400">
+              {totalsLabel(dg.total) } 
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -292,9 +383,7 @@ function ExpenseRow({
             </span>
           )}
         </p>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          {formatDate(e.date, language)} · {e.cardName}
-        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(e.date, language)}</p>
       </div>
       <p className="shrink-0 text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
         {formatCurrency(e.amount, e.currency)}

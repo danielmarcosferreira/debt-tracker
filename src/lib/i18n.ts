@@ -162,6 +162,8 @@ const en = {
   "peopleDetail.emptyTitle": "No expenses",
   "peopleDetail.emptyDescAll": "No expenses for {name} yet.",
   "peopleDetail.emptyDescFiltered": "No {filter} expenses for {name} yet.",
+  "peopleDetail.noDueDay": "No due day set",
+  "peopleDetail.dueDayTotal": "Total for day {day}",
   "peopleDetail.deleteConfirm":
     "Delete {name}? Their expenses will remain but lose this person reference.",
   "peopleDetail.deleteTitle": "Delete person",
@@ -259,17 +261,18 @@ const en = {
   "category.Health": "Health",
   "category.Other": "Other",
 
+  "pdf.appName": "DebtTracker",
   "pdf.statement": "Statement",
-  "pdf.from": "From: {name}",
-  "pdf.generated": "Generated: {date}",
+  "pdf.preparedBy": "Prepared by {name}",
+  "pdf.generated": "Generated {date}",
+  "pdf.totalUnpaid": "Total unpaid",
   "pdf.colDate": "Date",
   "pdf.colDescription": "Description",
-  "pdf.colCard": "Card",
   "pdf.colAmount": "Amount",
   "pdf.colStatus": "Status",
   "pdf.paid": "Paid",
   "pdf.unpaid": "Unpaid",
-  "pdf.totalOwed": "Total owed: {amount}",
+  "pdf.noExpenses": "No expenses in this period.",
 } as const;
 
 export type TranslationKey = keyof typeof en;
@@ -442,6 +445,8 @@ const pt: Record<TranslationKey, string> = {
   "peopleDetail.emptyTitle": "Nenhuma despesa",
   "peopleDetail.emptyDescAll": "Ainda não há despesas para {name}.",
   "peopleDetail.emptyDescFiltered": "Nenhuma despesa {filter} para {name} ainda.",
+  "peopleDetail.noDueDay": "Sem dia de vencimento",
+  "peopleDetail.dueDayTotal": "Total para o dia {day}",
   "peopleDetail.deleteConfirm":
     "Excluir {name}? As despesas dessa pessoa permanecerão, mas perderão essa referência.",
   "peopleDetail.deleteTitle": "Excluir pessoa",
@@ -539,17 +544,18 @@ const pt: Record<TranslationKey, string> = {
   "category.Health": "Saúde",
   "category.Other": "Outro",
 
+  "pdf.appName": "DebtTracker",
   "pdf.statement": "Fatura",
-  "pdf.from": "De: {name}",
-  "pdf.generated": "Gerado em: {date}",
+  "pdf.preparedBy": "Gerada por {name}",
+  "pdf.generated": "Gerada em {date}",
+  "pdf.totalUnpaid": "Total em aberto",
   "pdf.colDate": "Data",
   "pdf.colDescription": "Descrição",
-  "pdf.colCard": "Cartão",
   "pdf.colAmount": "Valor",
   "pdf.colStatus": "Status",
   "pdf.paid": "Paga",
   "pdf.unpaid": "Não paga",
-  "pdf.totalOwed": "Total devido: {amount}",
+  "pdf.noExpenses": "Nenhuma despesa neste período.",
 };
 
 const dictionaries: Record<LanguageCode, Record<TranslationKey, string>> = {

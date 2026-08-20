@@ -69,6 +69,34 @@ export function groupByMonth(expenses: Expense[]) {
     .sort((a, b) => b.monthKey.localeCompare(a.monthKey));
 }
 
+/**
+ * Groups expenses by their card's due day (statement day of month), then by
+ * card within each due-day bucket — so "everything due on the 5th" (which
+ * may span several cards that all bill on that day) sits together, with
+ * "everything due on the 10th" below it. Cards without a due day land in a
+ * trailing bucket. Sorted by due day ascending.
+ */
+export function groupByDueDay(expenses: Expense[], cards: Card[]) {
+  const dueDayByCard = new Map(cards.map((c) => [c.id, c.dueDay ?? null]));
+  const buckets = new Map<number | null, Expense[]>();
+  for (const e of expenses) {
+    const day = dueDayByCard.get(e.cardId) ?? null;
+    if (!buckets.has(day)) buckets.set(day, []);
+    buckets.get(day)!.push(e);
+  }
+  return Array.from(buckets.entries())
+    .map(([dueDay, dayExpenses]) => ({
+      dueDay,
+      cardGroups: groupByCard(dayExpenses),
+      total: sumByCurrency(dayExpenses, () => true),
+    }))
+    .sort((a, b) => {
+      if (a.dueDay === null) return 1;
+      if (b.dueDay === null) return -1;
+      return a.dueDay - b.dueDay;
+    });
+}
+
 /** Cross-owner debts: what the signed-in (linked) user owes, grouped by the owner's name. */
 export function debtsByOwner(expenses: Expense[]) {
   const groups = new Map<string, { ownerName: string; expenses: Expense[] }>();
