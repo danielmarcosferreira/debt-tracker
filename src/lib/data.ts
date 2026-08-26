@@ -14,7 +14,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { newId } from "./utils";
+import { newId, shiftInstallmentDate } from "./utils";
 import type { Card, Person, Expense, CurrencyCode, Category } from "./types";
 
 const cardsCol = collection(db, "cards");
@@ -220,12 +220,10 @@ export async function addExpense(input: NewExpenseInput) {
   const groupId = newId();
   const perInstallment = Math.round((input.amount / count) * 100) / 100;
   const batch = writeBatch(db);
-  const startDate = new Date(input.date + "T00:00:00");
+  const day = Number(input.date.slice(8, 10));
 
   for (let i = start; i <= count; i++) {
-    const d = new Date(startDate);
-    d.setMonth(d.getMonth() + (i - start));
-    const iso = d.toISOString().slice(0, 10);
+    const iso = shiftInstallmentDate(input.date, i - start, day);
     const ref = doc(expensesCol);
     batch.set(ref, {
       ...base,
