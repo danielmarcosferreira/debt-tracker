@@ -5,14 +5,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
-import { useCards, usePeople, useExpenses, markExpensePaid } from "@/lib/data";
+import { useCards, usePeople, useExpenses, markExpensePaid, setCardInvoicePaid } from "@/lib/data";
+import { useMonthScope } from "@/lib/hooks";
 import { cardBalance } from "@/lib/aggregates";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { expensesInMonth, formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 import { CardFormSheet } from "@/components/CardFormSheet";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
 import { DeleteCardDialog } from "@/components/DeleteCardDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { MonthScopePicker } from "@/components/MonthScopePicker";
 import type { Expense } from "@/lib/types";
 import {
   ArrowLeft,
@@ -35,7 +38,14 @@ export default function CardDetailPage() {
 }
 
 function CardDetail() {
-  const id = useSearchParams().get("id") ?? "";
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") ?? "";
+  const initialMonth = searchParams.get("month");
+  const monthScope = useMonthScope({
+    scope: initialMonth ? "month" : "all",
+    monthKey: initialMonth,
+  });
+  const month = monthScope.monthKey;
   const router = useRouter();
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -47,12 +57,35 @@ function CardDetail() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
+  const [markingMonthPaid, setMarkingMonthPaid] = useState(false);
 
   const card = cards.find((c) => c.id === id);
-  const cardExpenses = expenses
-    .filter((e) => e.cardId === id)
+  const cardExpenses = expensesInMonth(
+    expenses.filter((e) => e.cardId === id),
+    month
+  )
     // Unpaid first (what still needs to be paid), newest first within each group.
     .sort((a, b) => Number(a.paid) - Number(b.paid) || b.date.localeCompare(a.date));
+
+  const handleMarkMonthPaid = async () => {
+    if (!month) return;
+    setMarkingMonthPaid(true);
+    try {
+      await setCardInvoicePaid(id, month, true);
+    } finally {
+      setMarkingMonthPaid(false);
+    }
+  };
+
+  const handleUndoMonthPaid = async () => {
+    if (!month) return;
+    setMarkingMonthPaid(true);
+    try {
+      await setCardInvoicePaid(id, month, false);
+    } finally {
+      setMarkingMonthPaid(false);
+    }
+  };
 
   const filtered = cardExpenses.filter((e) => {
     if (filter === "unpaid") return !e.paid;
@@ -82,7 +115,7 @@ function CardDetail() {
     );
   }
 
-  const balance = cardBalance(card.id, expenses);
+  const balance = month ? cardBalance(card.id, cardExpenses) : cardBalance(card.id, expenses);
   const pct = card.limit ? Math.min(100, Math.round((balance / card.limit) * 100)) : null;
 
   return (
@@ -164,6 +197,44 @@ function CardDetail() {
       </header>
 
       <main className="px-2 pt-5">
+        <MonthScopePicker {...monthScope} />
+
+        {month && cardExpenses.length > 0 && (
+          <div className="mb-4">
+            {!card.paidInvoiceCycles?.includes(month) ? (
+              <>
+                <Button
+                  type="button"
+                  onClick={handleMarkMonthPaid}
+                  loading={markingMonthPaid}
+                  className="w-full"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t("cardDetail.markMonthPaid", { month: formatMonthYear(month, language) })}
+                </Button>
+                <p className="mt-1.5 px-1 text-xs text-slate-400 dark:text-slate-500">
+                  {t("cardDetail.markMonthPaidDesc", { month: formatMonthYear(month, language) })}
+                </p>
+              </>
+            ) : (
+              <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 dark:border-emerald-900 dark:bg-emerald-950/40">
+                <span className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t("cardDetail.monthPaid", { month: formatMonthYear(month, language) })}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleUndoMonthPaid}
+                  disabled={markingMonthPaid}
+                  className="text-sm font-medium text-emerald-700 hover:text-emerald-800 disabled:opacity-50 dark:text-emerald-300 dark:hover:text-emerald-200"
+                >
+                  {t("cardDetail.undoMarkMonthPaid")}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="mb-4 flex gap-2">
           {(["all", "unpaid", "paid"] as Filter[]).map((f) => (
             <button
@@ -184,9 +255,16 @@ function CardDetail() {
             icon={Receipt}
             title={t("cardDetail.emptyTitle")}
             description={
-              filter === "all"
-                ? t("cardDetail.emptyDescAll")
-                : t("cardDetail.emptyDescFiltered", { filter: filterLabels[filter] })
+              month
+                ? filter === "all"
+                  ? t("cardDetail.emptyDescMonth", { month: formatMonthYear(month, language) })
+                  : t("cardDetail.emptyDescMonthFiltered", {
+                      filter: filterLabels[filter],
+                      month: formatMonthYear(month, language),
+                    })
+                : filter === "all"
+                  ? t("cardDetail.emptyDescAll")
+                  : t("cardDetail.emptyDescFiltered", { filter: filterLabels[filter] })
             }
           />
         ) : (
@@ -197,13 +275,13 @@ function CardDetail() {
                 <div key={e.id} className="flex items-center gap-3 p-3.5">
                   <button
                     onClick={() => markExpensePaid(e.id, !e.paid)}
-                    className="shrink-0 text-slate-300 transition hover:text-emerald-500 dark:text-slate-600"
+                    className="shrink-0 text-slate-400 transition hover:text-emerald-500 dark:text-slate-500 dark:hover:text-emerald-400"
                     title={e.paid ? t("common.markUnpaid") : t("common.markPaid")}
                   >
                     {e.paid ? (
-                      <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                      <CheckCircle2 className="h-6 w-6 text-emerald-500 dark:text-emerald-400" />
                     ) : (
-                      <Circle className="h-6 w-6" />
+                      <Circle className="h-6 w-6 stroke-[1.75]" />
                     )}
                   </button>
                   <div className="min-w-0 flex-1">

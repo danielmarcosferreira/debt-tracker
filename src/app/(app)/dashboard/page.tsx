@@ -45,7 +45,7 @@ export default function DashboardPage() {
 
   const myDebt = myUnpaidTotals(scopedExpenses);
   const owedToMe = owedToMeTotals(scopedExpenses);
-  const due = upcomingDueDates(cards);
+  const due = upcomingDueDates(cards, expenses);
   const owedGroups = debtsByOwner(scopedMyDebtExpenses).filter((g) => g.unpaidTotal > 0);
   const owedElsewhereTotal = owedGroups.reduce((sum, g) => sum + g.unpaidTotal, 0);
   const firstName = profile?.name?.split(" ")[0] ?? user?.displayName?.split(" ")[0];

@@ -68,6 +68,8 @@ export interface Card {
   currency: CurrencyCode;
   /** Day of month (1-31) the statement/bill is due. */
   dueDay?: number;
+  /** "yyyy-MM" months whose invoice the owner has explicitly marked paid to the card issuer — independent of each expense's own `paid` flag, which tracks whether the person it's for has reimbursed the owner. */
+  paidInvoiceCycles?: string[];
   createdAt: number;
 }
 

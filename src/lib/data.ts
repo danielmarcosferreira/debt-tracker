@@ -12,6 +12,8 @@ import {
   doc,
   writeBatch,
   getDocs,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { newId, shiftInstallmentDate } from "./utils";
@@ -55,6 +57,13 @@ export async function updateCard(id: string, data: Partial<Card>) {
 
 export async function deleteCard(id: string) {
   await deleteDoc(doc(db, "cards", id));
+}
+
+/** Marks a card's invoice for one "yyyy-MM" cycle paid/unpaid to the card issuer — independent of each expense's own `paid` flag (which tracks reimbursement from the person it's for). */
+export async function setCardInvoicePaid(cardId: string, monthKey: string, paid: boolean) {
+  await updateDoc(doc(db, "cards", cardId), {
+    paidInvoiceCycles: paid ? arrayUnion(monthKey) : arrayRemove(monthKey),
+  });
 }
 
 // ---------- People ----------

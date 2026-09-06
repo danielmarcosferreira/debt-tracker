@@ -52,6 +52,61 @@ export function groupByCard(expenses: Expense[]) {
     .sort((a, b) => b.total - a.total);
 }
 
+export interface CardMonthTotal {
+  card: Card;
+  total: number;
+  count: number;
+  dueDate: Date | null;
+  daysUntil: number | null;
+  overdue: boolean;
+  paid: boolean;
+}
+
+/**
+ * Per-card totals for a set of already month/scope-filtered expenses, largest
+ * total first. Sums every expense in scope regardless of its own `paid`
+ * flag, since that tracks reimbursement from the person it's for, not
+ * whether the card issuer has been paid — that's `card.paidInvoiceCycles`
+ * instead. By default a card whose invoice for `monthKey` is already marked
+ * paid is omitted; pass `includePaid: true` to list those too (each flagged
+ * via the returned `paid` field).
+ */
+export function cardTotalsInScope(
+  cards: Card[],
+  expenses: Expense[],
+  monthKey: string | null,
+  includePaid = false
+): CardMonthTotal[] {
+  const cardsById = new Map(cards.map((c) => [c.id, c]));
+  const totals = new Map<string, { card: Card; total: number; count: number }>();
+  for (const e of expenses) {
+    const card = cardsById.get(e.cardId);
+    if (!card) continue;
+    const paid = !!(monthKey && card.paidInvoiceCycles?.includes(monthKey));
+    if (paid && !includePaid) continue;
+    const entry = totals.get(card.id) ?? { card, total: 0, count: 0 };
+    entry.total += e.amount;
+    entry.count += 1;
+    totals.set(card.id, entry);
+  }
+
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  return Array.from(totals.values())
+    .filter((entry) => entry.total !== 0)
+    .map((entry) => {
+      const paid = !!(monthKey && entry.card.paidInvoiceCycles?.includes(monthKey));
+      if (!monthKey || !entry.card.dueDay) {
+        return { ...entry, dueDate: null, daysUntil: null, overdue: false, paid };
+      }
+      const dueDate = dueDateForMonth(monthKey, entry.card.dueDay);
+      const daysUntil = Math.round((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return { ...entry, dueDate, daysUntil, overdue: daysUntil < 0 && !paid, paid };
+    })
+    .sort((a, b) => b.total - a.total);
+}
+
 /** Groups expenses by their "yyyy-MM" month, newest first, each with its own summed total. */
 export function groupByMonth(expenses: Expense[]) {
   const groups = new Map<string, Expense[]>();
@@ -117,32 +172,50 @@ export interface UpcomingDue {
   card: Card;
   dueDate: Date;
   daysUntil: number;
+  overdue: boolean;
+  /** "yyyy-MM" of the unpaid invoice this alert is about — link into that month on the card's detail page. */
+  monthKey: string;
 }
 
-/** Cards whose next due date falls within `withinDays` (default 5), soonest first. */
-export function upcomingDueDates(cards: Card[], withinDays = 5): UpcomingDue[] {
+/**
+ * Cards with an unpaid invoice due within `withinDays` (default 5) or already
+ * overdue, most urgent first. Driven by `card.paidInvoiceCycles` (not just a
+ * date calculation, and not by each expense's own `paid` flag, which tracks
+ * reimbursement from the person it's for rather than whether the card issuer
+ * has been paid): a card's oldest month with activity that hasn't been
+ * marked paid is treated as its current invoice, so a missed payment keeps
+ * surfacing as overdue instead of silently rolling over to next month's due
+ * date. Clears once that month is explicitly marked paid.
+ */
+export function upcomingDueDates(cards: Card[], expenses: Expense[], withinDays = 5): UpcomingDue[] {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
   const results: UpcomingDue[] = [];
   for (const card of cards) {
     if (!card.dueDay) continue;
-    const candidate = nextOccurrence(now, card.dueDay);
+    const monthsWithActivity = new Set(
+      expenses.filter((e) => e.cardId === card.id).map((e) => e.date.slice(0, 7))
+    );
+    const unpaidMonths = Array.from(monthsWithActivity).filter(
+      (m) => !card.paidInvoiceCycles?.includes(m)
+    );
+    if (unpaidMonths.length === 0) continue;
+
+    const monthKey = unpaidMonths.sort()[0];
+    const dueDate = dueDateForMonth(monthKey, card.dueDay);
     const daysUntil = Math.round(
-      (candidate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
     if (daysUntil <= withinDays) {
-      results.push({ card, dueDate: candidate, daysUntil });
+      results.push({ card, dueDate, daysUntil, overdue: daysUntil < 0, monthKey });
     }
   }
   return results.sort((a, b) => a.daysUntil - b.daysUntil);
 }
 
-function nextOccurrence(from: Date, dayOfMonth: number): Date {
+function dueDateForMonth(monthKey: string, dayOfMonth: number): Date {
+  const [year, month] = monthKey.split("-").map(Number);
   const clampedDay = Math.min(dayOfMonth, 28);
-  let candidate = new Date(from.getFullYear(), from.getMonth(), clampedDay);
-  if (candidate < from) {
-    candidate = new Date(from.getFullYear(), from.getMonth() + 1, clampedDay);
-  }
-  return candidate;
+  return new Date(year, month - 1, clampedDay);
 }
