@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
 import type { UpcomingDue } from "@/lib/aggregates";
 import { useLanguage } from "@/lib/language-context";
 
-export function DueBanner({ due }: { due: UpcomingDue[] }) {
+export function DueBanner({ due, onClose }: { due: UpcomingDue[]; onClose?: () => void }) {
   const { t } = useLanguage();
   if (due.length === 0) return null;
 
@@ -13,17 +13,31 @@ export function DueBanner({ due }: { due: UpcomingDue[] }) {
 
   return (
     <div
-      className={`mx-5 mt-4 flex flex-col gap-2 rounded-2xl border p-3.5 ${
+      className={`relative mx-5 mt-4 flex flex-col gap-2 rounded-2xl border p-3.5 ${
         hasOverdue
           ? "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950"
           : "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950"
       }`}
     >
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={t("common.close")}
+          className={`absolute right-2 top-2 rounded-full p-1 transition ${
+            hasOverdue
+              ? "text-red-500 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900"
+              : "text-amber-500 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-900"
+          }`}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
       {due.map(({ card, daysUntil, overdue, monthKey }) => (
         <Link
           key={card.id}
           href={`/cards/detail?id=${card.id}&month=${monthKey}`}
-          className="flex items-center gap-2.5"
+          className={`flex items-center gap-2.5 ${onClose ? "pr-6" : ""}`}
         >
           <AlertTriangle
             className={`h-4 w-4 shrink-0 ${

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { addMonthsToKey, currentMonthKey } from "./utils";
+import { addMonthsToKey, currentMonthKey, todayISO } from "./utils";
 
 function noopSubscribe() {
   return () => {};
@@ -88,4 +88,33 @@ export function useMonthScope(initial?: MonthScopeInitial, storageKey?: string):
     onNextMonth: () => shiftMonth(1),
     onToday: () => setExplicitMonthKey(null),
   };
+}
+
+function isDismissedToday(storageKey: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(storageKey) === todayISO();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Drives a once-per-day dismissible banner: starts dismissed if the user
+ * already closed it earlier today (persisted in localStorage), and reopens
+ * on its own the next time they open the app on a new calendar day.
+ */
+export function useDailyDismiss(storageKey: string) {
+  const [dismissed, setDismissed] = useState(() => isDismissedToday(storageKey));
+
+  const dismiss = () => {
+    setDismissed(true);
+    try {
+      localStorage.setItem(storageKey, todayISO());
+    } catch {
+      // Storage can fail (private browsing, quota) — persistence is a nice-to-have, not required.
+    }
+  };
+
+  return { dismissed, dismiss };
 }

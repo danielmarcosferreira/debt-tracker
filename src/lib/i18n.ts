@@ -10,6 +10,7 @@ const en = {
   "common.showPassword": "Show password",
   "common.hidePassword": "Hide password",
   "common.cancel": "Cancel",
+  "common.close": "Close",
 
   "deleteExpense.title": "Delete expense",
   "deleteExpense.simpleConfirm": "Delete this expense? This can't be undone.",
@@ -303,6 +304,7 @@ const pt: Record<TranslationKey, string> = {
   "common.showPassword": "Mostrar senha",
   "common.hidePassword": "Ocultar senha",
   "common.cancel": "Cancelar",
+  "common.close": "Fechar",
 
   "deleteExpense.title": "Excluir despesa",
   "deleteExpense.simpleConfirm": "Excluir esta despesa? Essa ação não pode ser desfeita.",

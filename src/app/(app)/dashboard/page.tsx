@@ -6,7 +6,7 @@ import { DueBanner } from "@/components/DueBanner";
 import { MonthScopePicker } from "@/components/MonthScopePicker";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
-import { useMonthScope, useTodayMonthKey } from "@/lib/hooks";
+import { useMonthScope, useTodayMonthKey, useDailyDismiss } from "@/lib/hooks";
 import { useCards, usePeople, useExpenses, useMyDebts } from "@/lib/data";
 import {
   cardBalance,
@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const monthScope = useMonthScope(undefined, "monthScope:dashboard");
   const { scope, monthKey } = monthScope;
   const todayMonthKey = useTodayMonthKey();
+  const dueBanner = useDailyDismiss("dueBanner:dismissedDate");
 
   // Debt totals respect the month/all-time picker — "all" means "today
   // onward," not the full history — while card balances and recent
@@ -68,7 +69,7 @@ export default function DashboardPage() {
         subtitle={t("dashboard.subtitle")}
       />
 
-      <DueBanner due={due} />
+      {!dueBanner.dismissed && <DueBanner due={due} onClose={dueBanner.dismiss} />}
 
       <main className="px-2 pt-5">
         <MonthScopePicker {...monthScope} />
