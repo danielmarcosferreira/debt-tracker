@@ -51,7 +51,9 @@ export default function DashboardPage() {
   const owedElsewhereTotal = owedGroups.reduce((sum, g) => sum + g.unpaidTotal, 0);
   const firstName = profile?.name?.split(" ")[0] ?? user?.displayName?.split(" ")[0];
 
-  const recent = expenses.slice(0, 5);
+  // `expenses` is sorted by transaction date, not by when it was entered —
+  // future-dated installments would otherwise bury genuinely new entries.
+  const recent = [...expenses].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
   const currency = profile?.defaultCurrency ?? "USD";
 
   // Carries the dashboard's own month/all-time picker over to the linked page.
