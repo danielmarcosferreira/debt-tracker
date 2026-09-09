@@ -14,7 +14,6 @@ import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { DeleteExpenseDialog } from "@/components/DeleteExpenseDialog";
 import { DeleteCardDialog } from "@/components/DeleteCardDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Button } from "@/components/ui/Button";
 import { MonthScopePicker } from "@/components/MonthScopePicker";
 import type { Expense } from "@/lib/types";
 import {
@@ -25,6 +24,7 @@ import {
   CheckCircle2,
   Circle,
   CreditCard,
+  Loader2,
 } from "lucide-react";
 
 type Filter = "all" | "unpaid" | "paid";
@@ -115,8 +115,10 @@ function CardDetail() {
     );
   }
 
-  const balance = month ? cardBalance(card.id, cardExpenses) : cardBalance(card.id, expenses);
-  const pct = card.limit ? Math.min(100, Math.round((balance / card.limit) * 100)) : null;
+  const overallBalance = cardBalance(card.id, expenses);
+  const balance = month ? cardBalance(card.id, cardExpenses) : overallBalance;
+  const invoiceTotal = month ? cardExpenses.reduce((sum, e) => sum + e.amount, 0) : null;
+  const pct = card.limit ? Math.min(100, Math.round((overallBalance / card.limit) * 100)) : null;
 
   return (
     <>
@@ -161,15 +163,26 @@ function CardDetail() {
             </div>
           </div>
 
-          <div className="mt-4 flex items-end justify-between">
-            <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {t("cards.currentBalance")}
-              </p>
-              <p className="text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-100">
-                {formatCurrency(balance, card.currency)}
-              </p>
-            </div>
+          <div className="mt-4 flex items-end justify-between gap-3">
+            {month ? (
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {t("cardDetail.remainingToPay")}
+                </p>
+                <p className="text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+                  {formatCurrency(balance, card.currency)}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {t("cards.currentBalance")}
+                </p>
+                <p className="text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+                  {formatCurrency(balance, card.currency)}
+                </p>
+              </div>
+            )}
             {card.dueDay && (
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {t("cards.dueOnDay", { day: card.dueDay })}
@@ -200,39 +213,56 @@ function CardDetail() {
         <MonthScopePicker {...monthScope} />
 
         {month && cardExpenses.length > 0 && (
-          <div className="mb-4">
-            {!card.paidInvoiceCycles?.includes(month) ? (
-              <>
-                <Button
-                  type="button"
-                  onClick={handleMarkMonthPaid}
-                  loading={markingMonthPaid}
-                  className="w-full"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  {t("cardDetail.markMonthPaid", { month: formatMonthYear(month, language) })}
-                </Button>
-                <p className="mt-1.5 px-1 text-xs text-slate-400 dark:text-slate-500">
-                  {t("cardDetail.markMonthPaidDesc", { month: formatMonthYear(month, language) })}
-                </p>
-              </>
-            ) : (
-              <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 dark:border-emerald-900 dark:bg-emerald-950/40">
-                <span className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                  <CheckCircle2 className="h-4 w-4" />
-                  {t("cardDetail.monthPaid", { month: formatMonthYear(month, language) })}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleUndoMonthPaid}
-                  disabled={markingMonthPaid}
-                  className="text-sm font-medium text-emerald-700 hover:text-emerald-800 disabled:opacity-50 dark:text-emerald-300 dark:hover:text-emerald-200"
-                >
-                  {t("cardDetail.undoMarkMonthPaid")}
-                </button>
+          card.paidInvoiceCycles?.includes(month) ? (
+            <div className="mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-900 dark:bg-emerald-950/40">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+                <CheckCircle2 className="h-5 w-5" />
               </div>
-            )}
-          </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                  {t("cardDetail.invoiceTotal")}
+                </p>
+                <p className="text-xl font-bold tabular-nums text-emerald-950 dark:text-emerald-50">
+                  {formatCurrency(invoiceTotal!, card.currency)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleUndoMonthPaid}
+                disabled={markingMonthPaid}
+                className="shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-800 disabled:opacity-50 dark:text-emerald-300 dark:hover:text-emerald-200"
+              >
+                {t("cardDetail.undoMarkMonthPaid")}
+              </button>
+            </div>
+          ) : (
+            <div className="mb-4 flex items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 px-4 py-3 dark:border-indigo-900/60 dark:bg-indigo-950/40">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white">
+                <Receipt className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                  {t("cardDetail.invoiceTotal")}
+                </p>
+                <p className="text-xl font-bold tabular-nums text-indigo-950 dark:text-indigo-50">
+                  {formatCurrency(invoiceTotal!, card.currency)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleMarkMonthPaid}
+                disabled={markingMonthPaid}
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-50"
+              >
+                {markingMonthPaid ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                )}
+                {t("common.markPaid")}
+              </button>
+            </div>
+          )
         )}
 
         <div className="mb-4 flex gap-2">
